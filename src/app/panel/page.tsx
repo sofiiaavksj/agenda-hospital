@@ -2,6 +2,10 @@ import { db } from "@/lib/supabase";
 import { ORIGENES } from "@/data/transporte";
 import { ocultarContacto } from "@/lib/agenda";
 import { formatDateTime } from "@/lib/time";
+import { salir } from "./ingresar/actions";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { COOKIE, credenciales, firmaSesion } from "@/lib/panel-auth";
 
 export const metadata = { title: "Indicadores", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -29,6 +33,10 @@ function Barras({ items }: { items: { label: string; n: number }[] }) {
 }
 
 export default async function Panel(props: { searchParams: Promise<{ dias?: string }> }) {
+  // Sin sesión válida, a la página de ingreso (la verificación ocurre en el servidor).
+  const { usuario, clave } = credenciales();
+  const sesion = (await cookies()).get(COOKIE)?.value;
+  if (!usuario || !clave || sesion !== (await firmaSesion())) redirect("/panel/ingresar");
   const searchParams = await props.searchParams;
   const dias = [7, 30, 90].includes(Number(searchParams.dias)) ? Number(searchParams.dias) : 30;
   const desde = new Date(Date.now() - dias * 86_400_000).toISOString();
@@ -60,7 +68,8 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
     <main className="mx-auto max-w-6xl px-5 py-8 text-base">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight">Indicadores</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <form action={salir}><button className="link mr-3 text-base">Cerrar sesión</button></form>
           {[7, 30, 90].map((d) => (
             <a key={d} href={`/panel?dias=${d}`} className={`rounded-full px-4 py-1.5 font-bold ${d === dias ? "bg-pine text-white" : "bg-white ring-1 ring-line"}`}>{d} días</a>
           ))}
