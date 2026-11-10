@@ -53,7 +53,15 @@ Los avisos respetan el rango horario que elige el paciente, así que la tarea de
 
 **Modo simulado (por defecto).** Los mensajes se generan completos, con sus enlaces, y quedan en `/panel`, pero no se envían. Sirve para las pruebas con usuarios: el evaluador ve el resultado en pantalla.
 
-**Correo** (gratis hasta cierto volumen):
+**Correo con Gmail** (gratis, envía a cualquier correo; recomendado para el piloto):
+
+1. Cree una cuenta de Gmail para el equipo y active la **verificación en dos pasos** (<https://myaccount.google.com/security>).
+2. En <https://myaccount.google.com/apppasswords> cree una contraseña de aplicación llamada `agenda`. Google muestra 16 letras.
+3. En Vercel agregue `SMTP_USER` (el Gmail completo) y `SMTP_PASS` (las 16 letras) y haga **Redeploy**.
+
+Gmail limita la cantidad de correos diarios por cuenta; para un piloto alcanza de sobra.
+
+**Correo con Resend** (gratis hasta cierto volumen):
 
 1. Cree una cuenta en <https://resend.com> y una API Key.
 2. Cargue `RESEND_API_KEY` en Vercel.

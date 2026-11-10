@@ -1,16 +1,33 @@
 import "server-only";
+import nodemailer from "nodemailer";
 
 export type Resultado = { estado: "enviado" | "simulado" | "fallido"; ref?: string; error?: string };
 
 /**
  * Envío por canal.
  *  - WhatsApp y SMS: Twilio (NOTIFY_PROVIDER=twilio).
- *  - Correo: Resend (si hay RESEND_API_KEY).
+ *  - Correo: un servidor SMTP (por ejemplo Gmail con contraseña de aplicación) si hay
+ *    SMTP_USER y SMTP_PASS; si no, Resend (RESEND_API_KEY).
  *  - Sin credenciales: modo simulado; el mensaje queda registrado en el panel.
  */
 export async function enviar(canal: "whatsapp" | "sms" | "email", contacto: string, asunto: string, texto: string): Promise<Resultado> {
   try {
     if (canal === "email") {
+      // 1) SMTP (Gmail u otro): envía a cualquier dirección sin necesidad de dominio propio.
+      const smtpUser = process.env.SMTP_USER?.trim(), smtpPass = process.env.SMTP_PASS?.replace(/\s/g, "");
+      if (smtpUser && smtpPass) {
+        const port = Number(process.env.SMTP_PORT || 465);
+        const transport = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || "smtp.gmail.com", port, secure: port === 465,
+          auth: { user: smtpUser, pass: smtpPass },
+        });
+        const info = await transport.sendMail({
+          from: process.env.EMAIL_FROM || `Recordatorio de su hora <${smtpUser}>`,
+          to: contacto, subject: asunto, text: texto,
+        });
+        return { estado: "enviado", ref: info.messageId };
+      }
+      // 2) Resend.
       const key = process.env.RESEND_API_KEY;
       if (!key) return { estado: "simulado" };
       const res = await fetch("https://api.resend.com/emails", {
