@@ -23,7 +23,7 @@ export function redactar(tipo: TipoMensaje, d: DatosMensaje): { asunto: string; 
     case "confirmacion":
       return {
         asunto: "Recordatorio registrado",
-        texto: `${hola} Registramos un recordatorio para ${que} en ${d.hospital}, ${cuando}.${donde}\nLe avisaremos antes de la cita.${llegar}${gestion}\n\nSi usted no pidió este recordatorio, anúlelo en el enlace.`,
+        texto: `${hola} Registramos un recordatorio para ${que} en ${d.hospital}, ${cuando}.${donde}\nLe avisaremos antes de la cita.${llegar}${gestion}\n\nPara que nuestros avisos no lleguen a correo no deseado, agregue esta dirección a sus contactos.\nSi usted no pidió este recordatorio, anúlelo en el enlace.`,
       };
     case "dos_dias":
       return { asunto: "Su hora es en 2 días", texto: `${hola} Le recordamos ${que} en ${d.hospital}, ${cuando}.${donde}${llegar}${gestion}` };
