@@ -1,25 +1,37 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { Shell } from "@/components/Shell";
-import { AlLlegar, BotonesApps, Paraderos } from "@/components/Transporte";
-import { ORIGENES, HOSPITAL, CONSEJOS, completarDireccion } from "@/data/transporte";
+import { AlLlegar, Paraderos } from "@/components/Transporte";
+import { BuscadorRuta, type Sector } from "@/components/BuscadorRuta";
+import { ORIGENES, HOSPITAL, CONSEJOS, origenPorId } from "@/data/transporte";
 import { sitio } from "@/config/sitio";
 import { db } from "@/lib/supabase";
+import { COOKIE_RECORDATORIO } from "@/lib/recordatorio-cookie";
 
 export const metadata = { title: "Cómo llegar", referrer: "no-referrer" };
 export const dynamic = "force-dynamic";
 
+const HABITUALES = ["coquimbo-centro", "parte-alta", "san-juan", "sindempart", "tierras-blancas", "el-llano", "la-serena-centro"];
+
 /**
- * Guía de transporte. Lo principal es la dirección escrita por el paciente
- * (la ruta la calcula Google Maps); las rutas escritas por sector quedan como
+ * Guía de transporte: buscador de direcciones con sugerencias; al elegir una,
+ * aparecen los botones con esa ruta. Las rutas escritas por sector quedan como
  * complemento para quien no usa aplicaciones.
  */
-export default async function Page(props: { searchParams: Promise<{ desde?: string }> }) {
-  const { desde: desdeCrudo } = await props.searchParams;
-  const desde = desdeCrudo?.trim().replace(/\s+/g, " ").slice(0, 150) || "";
+export default async function Page(props: { searchParams: Promise<{ desde?: string; rec?: string }> }) {
+  const sp = await props.searchParams;
+  const desde = sp.desde?.trim().replace(/\s+/g, " ").slice(0, 150) || "";
   if (desde) {
-    // Sólo se registra que hubo una consulta por dirección; la dirección no se guarda.
+    // Sólo se cuenta la consulta; la dirección no se guarda.
     try { await db().from("consultas_transporte").insert({ origen: "direccion" }); } catch { /* no bloquea */ }
   }
+  // Si la persona ya tiene un recordatorio (viene desde él), no se le vuelve a ofrecer.
+  const yaTieneRecordatorio = sp.rec === "1" || (await cookies()).has(COOKIE_RECORDATORIO);
+  const sectores: Sector[] = HABITUALES.map((id) => origenPorId(id)!).filter(Boolean).map((o) => {
+    const corto = o.nombre.replace("Centro de ", "").split(" /")[0];
+    const comuna = o.grupo === "Otras comunas" ? "" : `, ${o.grupo}`;
+    return { id: o.id, etiqueta: o.id === "la-serena-centro" ? "La Serena centro" : o.id === "coquimbo-centro" ? "Coquimbo centro" : corto, texto: `${corto}${comuna}, Chile` };
+  });
   const grupos = ["Coquimbo", "La Serena", "Otras comunas"] as const;
 
   return (
@@ -27,29 +39,9 @@ export default async function Page(props: { searchParams: Promise<{ desde?: stri
       <h1 className="text-3xl font-bold tracking-tight">¿Cómo llego al hospital?</h1>
       <p className="mt-2 text-ink-soft">{HOSPITAL.nombre}, {HOSPITAL.direccion}.</p>
 
-      <form action="/como-llegar" method="get" className="mt-8 rounded-2xl border-2 border-pine bg-white p-5">
-        <label htmlFor="desde" className="block text-2xl font-bold">¿Desde dónde viaja?</label>
-        <p className="mb-3 mt-1 text-ink-soft">Escriba su dirección con número y comuna.</p>
-        <input id="desde" name="desde" defaultValue={desde} maxLength={150} autoComplete="street-address" required
-          placeholder="Ej.: Los Pescadores 1234, Coquimbo" className="field text-xl" />
-        <button type="submit" className="btn-primary mt-4 w-full py-4 text-lg">Ver cómo llegar</button>
-      </form>
-
-      {desde ? (
-        <section className="mt-8" aria-live="polite">
-          <h2 className="text-2xl font-bold">Ruta desde {desde}</h2>
-          <p className="mb-4 mt-1 text-ink-soft">
-            Google Maps le muestra qué micro o colectivo tomar, dónde subir y bajar, y cuánto tarda, con los horarios del momento.
-          </p>
-          <BotonesApps origen={completarDireccion(desde)} />
-          <p className="mt-3 text-base text-ink-soft">¿No encuentra su dirección? Pruebe con el nombre de su villa o sector y la comuna.</p>
-        </section>
-      ) : (
-        <section className="mt-6">
-          <p className="mb-3 text-ink-soft">O, si está en su casa con el celular:</p>
-          <BotonesApps />
-        </section>
-      )}
+      <div className="mt-8 rounded-2xl border-2 border-pine bg-white p-5">
+        <BuscadorRuta inicial={desde || undefined} sectores={sectores} />
+      </div>
 
       <div className="mt-10"><AlLlegar texto={sitio.totem} /></div>
 
@@ -71,7 +63,7 @@ export default async function Page(props: { searchParams: Promise<{ desde?: stri
               <h3 className="mb-2 font-bold text-ink-soft">{g}</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {ORIGENES.filter((o) => o.grupo === g).map((o) => (
-                  <Link key={o.id} href={`/como-llegar/${o.id}`} className="rounded-xl border-2 border-line bg-white px-4 py-3 font-bold hover:border-pine">
+                  <Link key={o.id} href={`/como-llegar/${o.id}${yaTieneRecordatorio ? "?rec=1" : ""}`} className="rounded-xl border-2 border-line bg-white px-4 py-3 font-bold hover:border-pine">
                     {o.nombre}
                   </Link>
                 ))}
@@ -81,11 +73,13 @@ export default async function Page(props: { searchParams: Promise<{ desde?: stri
         </div>
       </details>
 
-      <section className="mt-10 rounded-2xl border-2 border-pine bg-white p-5">
-        <h2 className="text-xl font-bold">¿Quiere que le recordemos su hora?</h2>
-        <p className="mt-1 text-ink-soft">Le avisamos antes de la cita, con esta ruta incluida.</p>
-        <Link href="/recordatorio" className="btn-primary mt-4">Activar recordatorio</Link>
-      </section>
+      {!yaTieneRecordatorio && (
+        <section className="mt-10 rounded-2xl border-2 border-pine bg-white p-5">
+          <h2 className="text-xl font-bold">¿Quiere que le recordemos su hora?</h2>
+          <p className="mt-1 text-ink-soft">Le avisamos antes de la cita, con la ruta incluida.</p>
+          <Link href="/recordatorio" className="btn-primary mt-4">Activar recordatorio</Link>
+        </section>
+      )}
     </Shell>
   );
 }

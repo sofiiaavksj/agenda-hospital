@@ -1,5 +1,6 @@
 "use server";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { COOKIE_RECORDATORIO, COOKIE_RECORDATORIO_OPCIONES } from "@/lib/recordatorio-cookie";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/supabase";
 import { planificar, normalizarCelular, normalizarCorreo, RANGOS, AVISOS, type Aviso, type Rango } from "@/lib/agenda";
@@ -79,5 +80,6 @@ export async function crearRecordatorio(_: Estado, f: FormData): Promise<Estado>
   const { data: conf } = await sb.from("mensajes").select("id, recordatorio_id, tipo").eq("recordatorio_id", r.id).eq("tipo", "confirmacion").single();
   if (conf) await despachar(sb, conf);
 
+  (await cookies()).set(COOKIE_RECORDATORIO, "1", { ...COOKIE_RECORDATORIO_OPCIONES, secure: process.env.NODE_ENV === "production" });
   redirect(`/r/${crearToken(r.id)}?nuevo=1`);
 }

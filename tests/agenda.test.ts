@@ -142,3 +142,26 @@ describe("cambios del hospital", () => {
     expect(texto).toContain("tótem de atención");
   });
 });
+
+import { sugerenciasDesdePhoton, numeroEn } from "@/lib/direcciones";
+
+describe("buscador de direcciones", () => {
+  const photon = {
+    features: [
+      { properties: { type: "street", name: "Corazón de Jesús", city: "Coquimbo", district: "Sindempart" }, geometry: { coordinates: [-71.33, -29.97] as [number, number] } },
+      { properties: { type: "house", name: "Mallplaza La Serena", street: "Avenida Alberto Solari", housenumber: "1400", city: "La Serena" }, geometry: { coordinates: [-71.25, -29.91] as [number, number] } },
+      { properties: { type: "house", street: "Los Pescadores", housenumber: "1234", city: "Coquimbo" }, geometry: { coordinates: [-71.34, -29.95] as [number, number] } },
+      { properties: { type: "street", name: "Corazón de Jesús", city: "Coquimbo", district: "Sindempart" }, geometry: { coordinates: [-71.331, -29.971] as [number, number] } },
+    ],
+  };
+  it("arma títulos legibles y agrega el número escrito a una calle", () => {
+    const s = sugerenciasDesdePhoton(photon, "corazon de jesus 4124");
+    expect(s.map((x) => x.titulo)).toEqual(["Corazón de Jesús 4124", "Mallplaza La Serena", "Los Pescadores 1234"]);
+    expect(s[0]).toMatchObject({ detalle: "Sindempart, Coquimbo", texto: "Corazón de Jesús 4124, Coquimbo, Chile" });
+    expect(s[1]).toMatchObject({ detalle: "Avenida Alberto Solari 1400, La Serena", texto: "Mallplaza La Serena, Avenida Alberto Solari 1400, La Serena, Chile" });
+  });
+  it("detecta el número de casa y tolera respuestas vacías", () => {
+    expect(numeroEn("corazon de jesus 4124")).toBe("4124");
+    expect(sugerenciasDesdePhoton({}, "x")).toEqual([]);
+  });
+});

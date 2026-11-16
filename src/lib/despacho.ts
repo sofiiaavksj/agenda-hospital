@@ -8,9 +8,10 @@ import type { TipoMensaje } from "./agenda";
 
 /** Ruta hacia el hospital: desde la dirección escrita, el sector elegido o la guía general. */
 export function enlaceTransporte(base: string, r: { direccion_origen?: string | null; origen?: string | null }) {
-  if (r.direccion_origen) return `${base}/como-llegar?desde=${encodeURIComponent(r.direccion_origen)}`;
-  if (r.origen) return `${base}/como-llegar/${r.origen}`;
-  return `${base}/como-llegar`;
+  // rec=1: la persona ya tiene recordatorio; la guía no se lo vuelve a ofrecer.
+  if (r.direccion_origen) return `${base}/como-llegar?desde=${encodeURIComponent(r.direccion_origen)}&rec=1`;
+  if (r.origen) return `${base}/como-llegar/${r.origen}?rec=1`;
+  return `${base}/como-llegar?rec=1`;
 }
 
 /** Redacta y envía un mensaje ya reservado (estado "enviado" provisional) y guarda el resultado. */
