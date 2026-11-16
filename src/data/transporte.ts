@@ -166,8 +166,19 @@ export function origenPorId(id: string) {
   return ORIGENES.find((o) => o.id === id);
 }
 
-export function mapsUrl(origen?: string) {
-  const p = new URLSearchParams({ api: "1", destination: HOSPITAL.destinoMapas, travelmode: "transit" });
+const COMUNAS_REGION = ["coquimbo", "la serena", "ovalle", "andacollo", "vicuña", "vicuna", "tongoy", "paihuano",
+  "la higuera", "monte patria", "combarbalá", "combarbala", "illapel", "salamanca", "los vilos", "río hurtado",
+  "rio hurtado", "punitaqui", "canela", "guanaqueros", "la herradura"];
+
+/** Completa la dirección escrita para que Google Maps la ubique en la región correcta. */
+export function completarDireccion(direccion: string) {
+  const d = direccion.trim().replace(/\s+/g, " ");
+  const tieneComuna = COMUNAS_REGION.some((c) => d.toLowerCase().includes(c));
+  return `${d}${tieneComuna ? "" : ", Región de Coquimbo"}, Chile`;
+}
+
+export function mapsUrl(origen?: string, modo: "transit" | "driving" | "walking" = "transit") {
+  const p = new URLSearchParams({ api: "1", destination: HOSPITAL.destinoMapas, travelmode: modo });
   if (origen) p.set("origin", origen);
   return `https://www.google.com/maps/dir/?${p.toString()}`;
 }

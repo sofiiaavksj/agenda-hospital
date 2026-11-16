@@ -55,11 +55,28 @@ export function Ruta({ op, origen }: { op: Opcion; origen: string }) {
 export function BotonesApps({ origen }: { origen?: string }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <a href={mapsUrl(origen)} target="_blank" rel="noopener noreferrer" className="btn-primary py-4 text-lg">
-        {origen ? "Ver ruta en Google Maps" : "Ruta desde donde estoy (Google Maps)"}
+      <a href={mapsUrl(origen)} target="_blank" rel="noopener noreferrer" className="btn-primary py-4 text-lg sm:col-span-2">
+        {origen ? "Ver ruta en transporte público (Google Maps)" : "Ruta desde donde estoy (Google Maps)"}
       </a>
-      <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Ver en Moovit</a>
+      {origen && (
+        <a href={mapsUrl(origen, "driving")} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Ruta en auto o taxi</a>
+      )}
+      <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className={`btn-secondary py-4 text-lg ${origen ? "" : "sm:col-span-2"}`}>Ver en Moovit</a>
     </div>
+  );
+}
+
+/** Indicación al llegar (tótem), común a las páginas de transporte. */
+export function AlLlegar({ texto }: { texto: string }) {
+  if (!texto) return null;
+  return (
+    <section className="flex items-start gap-4 rounded-2xl border-2 border-marigold bg-marigold-soft p-5">
+      <span aria-hidden className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-xl font-bold text-white">i</span>
+      <div>
+        <h2 className="text-xl font-bold">Al llegar al hospital</h2>
+        <p className="mt-1">{texto}</p>
+      </div>
+    </section>
   );
 }
 

@@ -27,7 +27,7 @@ export default async function Inicio(props: { searchParams: Promise<{ origen?: s
         </Link>
         <Link href="/como-llegar" className="rounded-2xl border-2 border-line bg-white p-6 hover:border-pine">
           <span className="block text-2xl font-bold">¿Cómo llego al hospital?</span>
-          <span className="mt-1 block text-ink-soft">Micros, colectivos y buses desde su sector o comuna.</span>
+          <span className="mt-1 block text-ink-soft">Escriba su dirección y vea qué micro, colectivo o bus tomar.</span>
         </Link>
       </div>
 

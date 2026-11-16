@@ -6,6 +6,13 @@ import { crearToken } from "./token";
 import { appUrl, sitio } from "@/config/sitio";
 import type { TipoMensaje } from "./agenda";
 
+/** Ruta hacia el hospital: desde la dirección escrita, el sector elegido o la guía general. */
+export function enlaceTransporte(base: string, r: { direccion_origen?: string | null; origen?: string | null }) {
+  if (r.direccion_origen) return `${base}/como-llegar?desde=${encodeURIComponent(r.direccion_origen)}`;
+  if (r.origen) return `${base}/como-llegar/${r.origen}`;
+  return `${base}/como-llegar`;
+}
+
 /** Redacta y envía un mensaje ya reservado (estado "enviado" provisional) y guarda el resultado. */
 export async function despachar(sb: SupabaseClient, m: { id: string; recordatorio_id: string; tipo: TipoMensaje }) {
   const { data: r } = await sb.from("recordatorios").select("*").eq("id", m.recordatorio_id).single();
@@ -22,7 +29,8 @@ export async function despachar(sb: SupabaseClient, m: { id: string; recordatori
   const { asunto, texto } = redactar(m.tipo, {
     hospital: sitio.hospital, nombre: r.nombre, citaEn: r.cita_en, especialidad: r.especialidad, lugar: r.lugar,
     enlaceGestion: `${base}/r/${crearToken(r.id)}`,
-    enlaceTransporte: `${base}/como-llegar${r.origen ? `/${r.origen}` : ""}`,
+    enlaceTransporte: enlaceTransporte(base, r),
+    totem: sitio.totem,
   });
   const res = await enviar(r.canal, r.contacto, asunto, texto);
   await sb.from("mensajes").update({

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Shell } from "@/components/Shell";
-import { BotonesApps, Paraderos, Ruta } from "@/components/Transporte";
+import { AlLlegar, BotonesApps, Paraderos, Ruta } from "@/components/Transporte";
+import { sitio } from "@/config/sitio";
 import { CONSEJOS, origenPorId } from "@/data/transporte";
 import { db } from "@/lib/supabase";
 
@@ -23,13 +24,15 @@ export default async function Page(props: { params: Promise<{ origen: string }> 
   return (
     <Shell back={{ href: "/como-llegar", label: "Otro sector" }}>
       <h1 className="text-3xl font-bold tracking-tight">Desde {o.nombre}</h1>
-      <p className="mt-2 text-ink-soft">Alternativas en transporte público hacia el hospital.</p>
+      <p className="mt-2 text-ink-soft">Alternativas en transporte público hacia el hospital. Para su ruta exacta, <Link href="/como-llegar" className="link">escriba su dirección</Link>.</p>
 
       <div className="mt-6"><BotonesApps origen={textoOrigen} /></div>
 
       <div className="mt-8 space-y-4">
         {o.opciones.map((op, i) => <Ruta key={i} op={op} origen={o.nombre} />)}
       </div>
+
+      <div className="mt-10"><AlLlegar texto={sitio.totem} /></div>
 
       <section className="mt-10">
         <h2 className="mb-3 text-2xl font-bold">Paraderos cerca del hospital</h2>

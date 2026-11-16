@@ -5,6 +5,16 @@ export const sitio = {
   hospital: clean(process.env.HOSPITAL_NAME) || "Hospital San Pablo de Coquimbo",
   telefonoSome: clean(process.env.SOME_PHONE),        // para avisar que no podrá asistir
   horarioSome: clean(process.env.SOME_HOURS),         // ej. "lunes a viernes, 8:00 a 17:00"
+  /**
+   * Indicación al llegar al hospital. Se muestra en la confirmación, en los
+   * avisos del día anterior y del mismo día, y en el calendario.
+   * Para cambiar el texto, cargue TOTEM_MSG en Vercel; con TOTEM_MSG=no se oculta.
+   */
+  totem: (() => {
+    const v = clean(process.env.TOTEM_MSG);
+    if (v.toLowerCase() === "no") return "";
+    return v || "Acérquese al tótem de atención para registrar su llegada.";
+  })(),
 };
 
 export function appUrl() {

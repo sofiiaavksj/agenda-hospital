@@ -24,7 +24,7 @@ export async function GET(_: Request, ctx: { params: Promise<{ token: string }> 
     `UID:${r.id}@agenda`, `DTSTAMP:${ics(new Date())}`, `DTSTART:${ics(start)}`, `DTEND:${ics(end)}`,
     `SUMMARY:${esc(titulo)}`,
     `LOCATION:${esc(`${sitio.hospital}, ${HOSPITAL.direccion}${r.lugar ? `. ${r.lugar}` : ""}`)}`,
-    `DESCRIPTION:${esc("Lleve su cédula de identidad y llegue 20 minutos antes.")}`,
+    `DESCRIPTION:${esc([sitio.totem, "Lleve su cédula de identidad y llegue 20 minutos antes."].filter(Boolean).join("\n"))}`,
     "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${esc(titulo)} mañana`, "END:VALARM",
     "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", `DESCRIPTION:${esc(titulo)} en 2 horas`, "END:VALARM",
     "END:VEVENT", "END:VCALENDAR",

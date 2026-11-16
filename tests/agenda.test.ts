@@ -86,3 +86,59 @@ describe("mensajes", () => {
     expect(texto).toContain("https://x/r/abc");
   });
 });
+
+import { leerPrellenado, leerFecha, leerHora, suavizarMayusculas } from "@/lib/prellenado";
+import { completarDireccion } from "@/data/transporte";
+import { googleCalendarUrl } from "@/lib/calendario";
+import { MOTIVOS_ANTES, MOTIVOS_DESPUES } from "@/lib/motivos";
+
+describe("link dinámico del SMS", () => {
+  it("lee los datos de la planilla del hospital", () => {
+    const p = leerPrellenado({
+      n: "ROSA ELENA", f: "2026-11-23", h: "08:00", e: "LABORATORIO",
+      l: "Presentarse en: ENTRADA POR PUERTA PRINCIPAL, CALLE DR. MOUKARZEL",
+    });
+    expect(p).toEqual({
+      nombre: "Rosa", fecha: "2026-11-23", hora: "08:00", especialidad: "Laboratorio",
+      lugar: "Entrada por Puerta Principal, Calle Dr. Moukarzel",
+    });
+  });
+  it("acepta nombres largos y distintos formatos de fecha y hora", () => {
+    expect(leerPrellenado({ nombre: "maría", fecha: "23/11/2026", hora: "8:30" })).toMatchObject({ nombre: "María", fecha: "2026-11-23", hora: "08:30" });
+    expect(leerFecha("46349")).toBe("2026-11-23");      // número de serie de Excel
+    expect(leerHora("0,375")).toBe("09:00");            // fracción de día de Excel
+    expect(leerHora("0930")).toBe("09:30");
+    expect(leerFecha("31/02/2026")).toBeUndefined();   // fecha imposible
+    expect(leerHora("25:00")).toBeUndefined();
+  });
+  it("ignora datos que no deben venir en el link", () => {
+    const p = leerPrellenado({ rut: "12345678-5", telefono: "+56911111111", n: "Ana123" });
+    expect(p).toEqual({ nombre: "Ana", fecha: undefined, hora: undefined, especialidad: undefined, lugar: undefined });
+  });
+  it("no altera textos que no vienen en mayúsculas", () => {
+    expect(suavizarMayusculas("Box 4, 2° piso")).toBe("Box 4, 2° piso");
+  });
+});
+
+describe("cambios del hospital", () => {
+  it("completa la dirección con la región si falta la comuna", () => {
+    expect(completarDireccion("Los Pescadores 1234")).toBe("Los Pescadores 1234, Región de Coquimbo, Chile");
+    expect(completarDireccion("Av. del Mar 500, La Serena")).toBe("Av. del Mar 500, La Serena, Chile");
+  });
+  it("arma el evento de Google Calendar en hora UTC", () => {
+    const url = googleCalendarUrl({ titulo: "Hora médica", inicio: new Date("2026-11-23T11:00:00Z"), lugar: "Hospital", detalle: "Tótem" });
+    expect(url).toContain("action=TEMPLATE");
+    expect(url).toContain("dates=20261123T110000Z%2F20261123T120000Z");
+  });
+  it("el olvido sólo se pregunta después de la cita", () => {
+    expect(MOTIVOS_ANTES).not.toContain("olvido");
+    expect(MOTIVOS_DESPUES).toContain("olvido");
+  });
+  it("el aviso del día incluye la indicación del tótem", () => {
+    const { texto } = redactar("mismo_dia", {
+      hospital: "Hospital", citaEn: "2026-11-23T11:00:00Z", enlaceGestion: "g", enlaceTransporte: "t",
+      totem: "Al llegar, acérquese al tótem de atención.",
+    });
+    expect(texto).toContain("tótem de atención");
+  });
+});

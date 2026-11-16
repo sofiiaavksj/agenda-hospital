@@ -3,6 +3,7 @@ import { ORIGENES } from "@/data/transporte";
 import { ocultarContacto } from "@/lib/agenda";
 import { formatDateTime } from "@/lib/time";
 import { salir } from "./ingresar/actions";
+import { MOTIVOS } from "@/lib/motivos";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { COOKIE, credenciales, firmaSesion } from "@/lib/panel-auth";
@@ -42,7 +43,7 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
   const desde = new Date(Date.now() - dias * 86_400_000).toISOString();
   const sb = db();
   const [{ data: recs }, { data: msgs }, { data: consultas }, { data: visitas }, { data: ultimos }] = await Promise.all([
-    sb.from("recordatorios").select("canal, rango, anulado_en, no_asistira_en, asistio, cita_en, origen").gte("creado_en", desde),
+    sb.from("recordatorios").select("*").gte("creado_en", desde),
     sb.from("mensajes").select("estado, tipo").gte("enviar_en", desde).lte("enviar_en", new Date().toISOString()),
     sb.from("consultas_transporte").select("origen").gte("creado_en", desde),
     sb.from("visitas").select("fuente").gte("creado_en", desde),
@@ -55,14 +56,21 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
   const contar = <T,>(arr: T[], key: (x: T) => string, labels?: Record<string, string>) =>
     Object.entries(arr.reduce<Record<string, number>>((acc, x) => ((acc[key(x)] = (acc[key(x)] ?? 0) + 1), acc), {}))
       .map(([k, n]) => ({ label: labels?.[k] ?? k, n }));
-  const nombreOrigen = Object.fromEntries(ORIGENES.map((o) => [o.id, o.nombre]));
+  const nombreOrigen: Record<string, string> = { direccion: "Por dirección escrita", ...Object.fromEntries(ORIGENES.map((o) => [o.id, `Sector: ${o.nombre}`])) };
 
   const kpis = [
     { t: "Recordatorios creados", v: String(r.length), d: `${r.filter((x) => x.anulado_en).length} anulados` },
     { t: "Asistió (según el paciente)", v: pct(asistieron, respondieron.length), d: `${asistieron} de ${respondieron.length} respuestas` },
     { t: "Avisaron que no irían", v: String(r.filter((x) => x.no_asistira_en).length), d: "Se les indicó llamar a SOME" },
-    { t: "Consultas de transporte", v: String((consultas ?? []).length), d: `Visitas desde el hospital: ${(visitas ?? []).filter((v) => v.fuente === "sitio-hospital").length}; desde QR: ${(visitas ?? []).filter((v) => v.fuente === "qr").length}` },
+    { t: "Consultas de transporte", v: String((consultas ?? []).length), d: `Visitas desde el hospital: ${(visitas ?? []).filter((v) => v.fuente === "sitio-hospital").length}; desde QR: ${(visitas ?? []).filter((v) => v.fuente === "qr").length}; desde SMS: ${(visitas ?? []).filter((v) => v.fuente === "sms").length}` },
   ];
+  // Motivos: "antes" = avisó que no iría; "después" = respondió que no fue.
+  const antes = r.filter((x: any) => x.no_asistira_en && x.motivo);
+  const despues = r.filter((x: any) => x.asistio === false && x.motivo);
+  const conMotivo = [...antes, ...despues];
+  const porMotivo = (lista: any[]) => contar(lista, (x) => x.motivo, MOTIVOS as unknown as Record<string, string>);
+  const comentarios = conMotivo.filter((x: any) => x.motivo_comentario).slice(-10).reverse();
+  const desdeSms = r.filter((x: any) => x.fuente === "sms").length;
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 text-base">
@@ -87,8 +95,32 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="panel p-5"><h2 className="mb-4 text-lg font-bold">Medio elegido</h2><Barras items={contar(r, (x) => x.canal, CANAL)} /></section>
         <section className="panel p-5"><h2 className="mb-4 text-lg font-bold">Horario elegido</h2><Barras items={contar(r, (x) => x.rango, RANGO)} /></section>
-        <section className="panel p-5"><h2 className="mb-4 text-lg font-bold">Sectores consultados en la guía</h2><Barras items={contar(consultas ?? [], (x) => x.origen, nombreOrigen)} /></section>
+        <section className="panel p-5"><h2 className="mb-4 text-lg font-bold">Consultas en la guía de transporte</h2><Barras items={contar(consultas ?? [], (x) => x.origen, nombreOrigen)} /></section>
         <section className="panel p-5"><h2 className="mb-4 text-lg font-bold">Estado de los avisos</h2><Barras items={contar(m, (x) => x.estado, ESTADO)} /></section>
+        <section className="panel p-5 lg:col-span-2">
+          <h2 className="text-lg font-bold">Motivos de inasistencia</h2>
+          <p className="mb-4 text-sm text-ink-soft">
+            {conMotivo.length} respuestas: {antes.length} avisaron antes de la cita y {despues.length} respondieron después que no fueron.
+            {" "}Recordatorios creados desde el link del SMS: {desdeSms} de {r.length}.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div><h3 className="mb-3 font-bold">Todos</h3><Barras items={porMotivo(conMotivo)} /></div>
+            <div><h3 className="mb-3 font-bold">Avisaron antes</h3><Barras items={porMotivo(antes)} /></div>
+            <div><h3 className="mb-3 font-bold">No fueron</h3><Barras items={porMotivo(despues)} /></div>
+          </div>
+          {comentarios.length > 0 && (
+            <div className="mt-6">
+              <h3 className="mb-2 font-bold">Últimos comentarios</h3>
+              <ul className="space-y-2">
+                {comentarios.map((x: any, i: number) => (
+                  <li key={i} className="rounded-lg bg-mist px-3 py-2 text-sm">
+                    <strong>{MOTIVOS[x.motivo as keyof typeof MOTIVOS]}:</strong> “{x.motivo_comentario}”
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
       </div>
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-bold">Últimos mensajes</h2>

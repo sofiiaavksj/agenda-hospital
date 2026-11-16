@@ -1,14 +1,18 @@
 "use client";
 import { useActionState, useEffect, useRef, useState, startTransition } from "react";
 import { crearRecordatorio, type Estado } from "./actions";
+import type { Prellenado } from "@/lib/prellenado";
 
 interface Props {
   hoy: string;
   especialidades: string[];
   rangos: { value: string; label: string }[];
   avisos: { value: string; label: string }[];
-  origenes: { grupo: string; items: { id: string; nombre: string }[] }[];
-  origenInicial?: string;
+  /** Datos que llegan en el link del SMS del hospital. */
+  inicial: Prellenado;
+  /** Dirección sugerida (por ejemplo, desde la guía de un sector). */
+  direccionInicial?: string;
+  fuente: "web" | "sms";
 }
 
 const CANALES = [
@@ -19,7 +23,7 @@ const CANALES = [
 
 const tile = "flex cursor-pointer items-center gap-3 rounded-xl border-2 border-line bg-white px-4 py-3 has-[:checked]:border-pine has-[:checked]:bg-pine-soft";
 
-export function Formulario({ hoy, especialidades, rangos, avisos, origenes, origenInicial }: Props) {
+export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direccionInicial, fuente }: Props) {
   const [estado, accion, pendiente] = useActionState<Estado, FormData>(crearRecordatorio, {});
   const [canal, setCanal] = useState("whatsapp");
   const alerta = useRef<HTMLParagraphElement>(null);
@@ -43,21 +47,26 @@ export function Formulario({ hoy, especialidades, rangos, avisos, origenes, orig
     >
       {estado.error && <p ref={alerta} tabIndex={-1} role="alert" className="rounded-lg border border-risk-alto/30 bg-red-50 px-4 py-3 font-bold text-risk-alto">{estado.error}</p>}
       <input type="text" name="sitio_web" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
+      <input type="hidden" name="fuente" value={fuente} />
 
       <fieldset>
         <legend className="mb-3 text-2xl font-bold">Su hora</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block"><span className="label">Fecha</span>
-            <input type="date" name="fecha" required min={hoy} className={`field ${err("fecha") ? "border-risk-alto" : ""}`} /></label>
+            <input type="date" name="fecha" required min={hoy} defaultValue={inicial.fecha} className={`field ${err("fecha") ? "border-risk-alto" : ""}`} /></label>
           <label className="block"><span className="label">Hora</span>
-            <input type="time" name="hora" required step={300} className={`field ${err("fecha") ? "border-risk-alto" : ""}`} /></label>
+            <input type="time" name="hora" required step={60} defaultValue={inicial.hora} className={`field ${err("fecha") ? "border-risk-alto" : ""}`} /></label>
           <label className="block sm:col-span-2"><span className="label">Especialidad o examen <span className="font-normal text-ink-soft">(opcional)</span></span>
-            <select name="especialidad" defaultValue="" className="field">
+            <select name="especialidad" defaultValue={inicial.especialidad ?? ""} className="field">
               <option value="">Prefiero no indicarlo</option>
+              {/* Si el hospital envía una especialidad que no está en la lista, se agrega. */}
+              {inicial.especialidad && !especialidades.includes(inicial.especialidad) && (
+                <option value={inicial.especialidad}>{inicial.especialidad}</option>
+              )}
               {especialidades.map((e) => <option key={e} value={e}>{e}</option>)}
             </select></label>
           <label className="block sm:col-span-2"><span className="label">Lugar dentro del hospital <span className="font-normal text-ink-soft">(opcional)</span></span>
-            <input name="lugar" maxLength={120} placeholder="Ej.: Policlínico, 2° piso, box 4" className="field" /></label>
+            <input name="lugar" maxLength={120} defaultValue={inicial.lugar} placeholder="Ej.: Policlínico, 2° piso, box 4" className="field" /></label>
         </div>
       </fieldset>
 
@@ -76,7 +85,7 @@ export function Formulario({ hoy, especialidades, rangos, avisos, origenes, orig
             placeholder={c.placeholder} className={`field text-xl ${err("contacto") ? "border-risk-alto" : ""}`} /></label>
         {canal !== "email" && <p className="mt-2 text-base text-ink-soft">Si su número no es chileno, escríbalo con el código de su país, por ejemplo +58 o +51.</p>}
         <label className="mt-4 block"><span className="label">Nombre <span className="font-normal text-ink-soft">(opcional, para saludarle)</span></span>
-          <input name="nombre" maxLength={80} autoComplete="given-name" className="field" /></label>
+          <input name="nombre" maxLength={80} autoComplete="given-name" defaultValue={inicial.nombre} className="field" /></label>
       </fieldset>
 
       <fieldset>
@@ -102,13 +111,10 @@ export function Formulario({ hoy, especialidades, rangos, avisos, origenes, orig
 
       <fieldset>
         <legend className="mb-1 text-2xl font-bold">Desde dónde viaja <span className="text-lg font-normal text-ink-soft">(opcional)</span></legend>
-        <p className="mb-3 text-ink-soft">Así el aviso incluye cómo llegar desde su sector.</p>
-        <select name="origen" defaultValue={origenInicial ?? ""} className="field">
-          <option value="">No indicar</option>
-          {origenes.map((g) => (
-            <optgroup key={g.grupo} label={g.grupo}>{g.items.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}</optgroup>
-          ))}
-        </select>
+        <p className="mb-3 text-ink-soft">Escriba su dirección y el aviso incluirá la ruta hasta el hospital.</p>
+        <label className="block"><span className="sr-only">Dirección</span>
+          <input name="direccion" maxLength={150} autoComplete="street-address" defaultValue={direccionInicial}
+            placeholder="Ej.: Los Pescadores 1234, Coquimbo" className="field" /></label>
       </fieldset>
 
       <label className={`flex items-start gap-3 rounded-xl border-2 bg-white p-4 ${err("consentimiento") ? "border-risk-alto" : "border-line"}`}>

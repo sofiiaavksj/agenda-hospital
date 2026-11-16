@@ -9,6 +9,8 @@ export interface DatosMensaje {
   lugar?: string | null;
   enlaceGestion: string;
   enlaceTransporte: string;
+  /** Indicación al llegar (tótem de atención). Vacío = no se muestra. */
+  totem?: string;
 }
 
 /** Textos cortos, una idea por mensaje, con enlaces a la gestión y a cómo llegar. */
@@ -19,6 +21,7 @@ export function redactar(tipo: TipoMensaje, d: DatosMensaje): { asunto: string; 
   const donde = d.lugar ? `\nLugar: ${d.lugar}.` : "";
   const llegar = `\n\nCómo llegar: ${d.enlaceTransporte}`;
   const gestion = `\nSi no podrá ir o quiere anular los avisos: ${d.enlaceGestion}`;
+  const totem = d.totem ? `\n${d.totem}` : "";
   switch (tipo) {
     case "confirmacion":
       return {
@@ -28,9 +31,9 @@ export function redactar(tipo: TipoMensaje, d: DatosMensaje): { asunto: string; 
     case "dos_dias":
       return { asunto: "Su hora es en 2 días", texto: `${hola} Le recordamos ${que} en ${d.hospital}, ${cuando}.${donde}${llegar}${gestion}` };
     case "un_dia":
-      return { asunto: "Su hora es mañana", texto: `${hola} Mañana tiene ${que} en ${d.hospital}, a las ${formatTime(d.citaEn)}.${donde}\nLleve su cédula de identidad y llegue 20 minutos antes.${llegar}${gestion}` };
+      return { asunto: "Su hora es mañana", texto: `${hola} Mañana tiene ${que} en ${d.hospital}, a las ${formatTime(d.citaEn)}.${donde}\nLleve su cédula de identidad y llegue 20 minutos antes.${totem}${llegar}${gestion}` };
     case "mismo_dia":
-      return { asunto: "Su hora es hoy", texto: `${hola} Hoy a las ${formatTime(d.citaEn)} tiene ${que} en ${d.hospital}.${donde}${llegar}` };
+      return { asunto: "Su hora es hoy", texto: `${hola} Hoy a las ${formatTime(d.citaEn)} tiene ${que} en ${d.hospital}.${donde}${totem}${llegar}` };
     case "post_cita":
       return { asunto: "¿Pudo asistir?", texto: `${hola} ¿Pudo asistir a ${que}? Responda con un toque, nos ayuda a mejorar: ${d.enlaceGestion}` };
   }

@@ -43,3 +43,13 @@ describe("base de datos", () => {
     expect((await db.query<{ n: number }>("select count(*)::int n from mensajes")).rows[0].n).toBe(0);
   });
 });
+
+describe("migración de noviembre", () => {
+  it("acepta motivo y dirección, y rechaza motivos desconocidos", async () => {
+    const { rows: [r] } = await db.query<{ id: string }>(`insert into recordatorios (canal, contacto, cita_en, rango, consentimiento_en, fuente, direccion_origen)
+      values ('email', 'a@b.cl', now() + interval '1 day', 'manana', now(), 'sms', 'Los Pescadores 1234, Coquimbo') returning id`);
+    await db.query("update recordatorios set no_asistira_en = now(), motivo = 'transporte', motivo_comentario = 'Sin micro' where id = $1", [r.id]);
+    await expect(db.query("update recordatorios set motivo = 'inventado' where id = $1", [r.id])).rejects.toThrow(/check/);
+    await db.query("insert into visitas (fuente) values ('sms')");
+  });
+});

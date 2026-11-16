@@ -12,7 +12,8 @@ Tiempo estimado: 40 minutos. Todo se hace desde el navegador con tres cuentas gr
 
 1. En <https://supabase.com> → **New project**, región **South America (São Paulo)**.
 2. **SQL Editor → New query**: pegue y ejecute (**Run**) el contenido de `supabase/migrations/20261109000000_agenda.sql`.
-3. **Project Settings → API**: copie la **Project URL** y la clave **service_role**. Esta clave es secreta.
+3. Ejecute también `supabase/migrations/20261116000000_cambios_hospital.sql` (dirección, motivos de inasistencia y link del SMS). Se puede ejecutar más de una vez sin problema.
+4. **Project Settings → API**: copie la **Project URL** y la clave **service_role**. Esta clave es secreta.
 
 Esta versión no usa el sistema de cuentas de Supabase: no hay que configurar correos de ingreso.
 
@@ -93,7 +94,11 @@ El panel distingue las visitas que llegan desde el banner y desde el QR.
 
 Si el cambio rompe algo, Vercel no publica y mantiene la versión anterior: revise el mensaje de error en **Deployments**.
 
-## 8. Antes de usarla con pacientes
+## 8. Link del SMS del hospital
+
+Ver `docs/LINK_SMS.md` y la plantilla `docs/Plantilla_link_SMS.xlsx`: la columna Q arma, para cada paciente, el link que abre el recordatorio ya completado.
+
+## 9. Antes de usarla con pacientes
 
 - Acordar con el hospital el uso de su nombre, el banner y el teléfono de SOME.
 - Revisar con el hospital el texto de `/privacidad`.

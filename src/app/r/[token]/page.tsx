@@ -6,8 +6,12 @@ import { db } from "@/lib/supabase";
 import { leerToken } from "@/lib/token";
 import { ocultarContacto, RANGOS, type Rango } from "@/lib/agenda";
 import { formatDateLong, formatTime, formatDateTime, relativeDays } from "@/lib/time";
-import { origenPorId } from "@/data/transporte";
+import { origenPorId, HOSPITAL } from "@/data/transporte";
 import { sitio } from "@/config/sitio";
+import { googleCalendarUrl } from "@/lib/calendario";
+import { enlaceTransporte } from "@/lib/despacho";
+import { CamposMotivo } from "@/components/Motivos";
+import { MOTIVOS, MOTIVOS_ANTES, MOTIVOS_DESPUES, esMotivo } from "@/lib/motivos";
 import { anular, noPodreIr, responderAsistencia } from "./actions";
 
 export const metadata = { title: "Mi recordatorio", referrer: "no-referrer", robots: { index: false } };
@@ -34,6 +38,13 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
   const pasada = new Date(r.cita_en) <= new Date();
   const origen = r.origen ? origenPorId(r.origen) : undefined;
   const hidden = <input type="hidden" name="token" value={params.token} />;
+  const rutaLlegar = enlaceTransporte("", r);
+  const calendarioGoogle = googleCalendarUrl({
+    titulo: `Hora médica${r.especialidad ? `: ${r.especialidad}` : ""}`,
+    inicio: new Date(r.cita_en),
+    lugar: `${sitio.hospital}, ${HOSPITAL.direccion}`,
+    detalle: [r.lugar && `Lugar: ${r.lugar}.`, sitio.totem, "Lleve su cédula de identidad y llegue 20 minutos antes."].filter(Boolean).join("\n"),
+  });
 
   return (
     <Shell>
@@ -56,19 +67,37 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
         </div>
       </div>
 
+      {/* Indicación al llegar (tótem) */}
+      {!pasada && !r.anulado_en && !r.no_asistira_en && sitio.totem && (
+        <section className="mt-6 flex items-start gap-4 rounded-2xl border-2 border-marigold bg-marigold-soft p-5">
+          <span aria-hidden className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-xl font-bold text-white">i</span>
+          <div>
+            <h2 className="text-xl font-bold">Al llegar al hospital</h2>
+            <p className="mt-1">{sitio.totem}</p>
+          </div>
+        </section>
+      )}
+
       {/* Después de la cita */}
       {pasada && !r.no_asistira_en && (
         <section className="mt-8 rounded-2xl border-2 border-pine bg-white p-5">
           {r.asistio === null ? (
             <>
               <h2 className="text-2xl font-bold">¿Pudo asistir a su hora?</h2>
-              <div className="mt-4 flex gap-3">
-                <form action={responderAsistencia} className="flex-1">{hidden}<input type="hidden" name="asistio" value="1" /><SubmitButton className="btn-primary w-full py-4 text-lg">Sí, asistí</SubmitButton></form>
-                <form action={responderAsistencia} className="flex-1">{hidden}<input type="hidden" name="asistio" value="0" /><SubmitButton className="btn-secondary w-full py-4 text-lg">No pude ir</SubmitButton></form>
-              </div>
+              <form action={responderAsistencia} className="mt-4">{hidden}<input type="hidden" name="asistio" value="1" /><SubmitButton className="btn-primary w-full py-4 text-lg">Sí, asistí</SubmitButton></form>
+              <details className="mt-3 rounded-xl border-2 border-line bg-white">
+                <summary className="cursor-pointer list-none px-5 py-4 text-center text-lg font-bold">No pude ir</summary>
+                <form action={responderAsistencia} className="space-y-4 border-t border-line px-5 py-4">
+                  {hidden}<input type="hidden" name="asistio" value="0" />
+                  <CamposMotivo opciones={MOTIVOS_DESPUES} pregunta="¿Qué le impidió asistir?" />
+                  <SubmitButton className="btn-primary w-full py-3">Enviar respuesta</SubmitButton>
+                </form>
+              </details>
             </>
           ) : (
-            <p className="text-lg font-bold">Gracias. Registramos que {r.asistio ? "asistió" : "no pudo asistir"}.</p>
+            <p className="text-lg font-bold">
+              Gracias. Registramos que {r.asistio ? "asistió" : "no pudo asistir"}{!r.asistio && esMotivo(r.motivo) ? ` (${MOTIVOS[r.motivo as keyof typeof MOTIVOS].toLowerCase()})` : ""}.
+            </p>
           )}
         </section>
       )}
@@ -84,8 +113,11 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
 
       {!pasada && !r.anulado_en && !r.no_asistira_en && (
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <a href={`/r/${params.token}/calendario`} className="btn-secondary py-4">Agregar a mi calendario</a>
-          <Link href={origen ? `/como-llegar/${origen.id}` : "/como-llegar"} className="btn-secondary py-4">Cómo llegar{origen ? ` desde ${origen.nombre}` : ""}</Link>
+          <a href={calendarioGoogle} target="_blank" rel="noopener noreferrer" className="btn-primary py-4">Agregar a Google Calendar</a>
+          <a href={`/r/${params.token}/calendario`} className="btn-secondary py-4">Calendario del celular (iPhone u otro)</a>
+          <Link href={rutaLlegar} className="btn-secondary py-4 sm:col-span-2">
+            Cómo llegar{r.direccion_origen ? ` desde ${r.direccion_origen}` : origen ? ` desde ${origen.nombre}` : ""}
+          </Link>
         </div>
       )}
 
@@ -110,7 +142,14 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
       {!pasada && !r.anulado_en && (
         <section className="mt-10 space-y-3">
           {!r.no_asistira_en && (
-            <form action={noPodreIr}>{hidden}<SubmitButton className="btn-secondary w-full py-4 text-lg">No podré ir a esta hora</SubmitButton></form>
+            <details className="rounded-xl border-2 border-line bg-white">
+              <summary className="cursor-pointer list-none px-5 py-4 text-center text-lg font-bold">No podré ir a esta hora</summary>
+              <form action={noPodreIr} className="space-y-4 border-t border-line px-5 py-4">
+                {hidden}
+                <CamposMotivo opciones={MOTIVOS_ANTES} pregunta="¿Por qué no podrá asistir?" />
+                <SubmitButton className="btn-primary w-full py-3">Avisar que no podré ir</SubmitButton>
+              </form>
+            </details>
           )}
           <details className="rounded-xl border border-line bg-white">
             <summary className="cursor-pointer list-none px-5 py-4 font-bold">Anular los avisos</summary>

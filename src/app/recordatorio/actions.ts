@@ -6,7 +6,6 @@ import { planificar, normalizarCelular, normalizarCorreo, RANGOS, AVISOS, type A
 import { fromChileLocal, DAY } from "@/lib/time";
 import { crearToken, hashIp } from "@/lib/token";
 import { despachar } from "@/lib/despacho";
-import { origenPorId } from "@/data/transporte";
 
 export interface Estado { error?: string; campo?: string }
 
@@ -40,7 +39,8 @@ export async function crearRecordatorio(_: Estado, f: FormData): Promise<Estado>
   if (!(rango in RANGOS)) return { error: "Elija el horario para recibir los avisos.", campo: "rango" };
   if (f.get("consentimiento") !== "on") return { error: "Para enviarle avisos necesitamos su autorización.", campo: "consentimiento" };
 
-  const origen = s(f, "origen");
+  const direccion = s(f, "direccion").replace(/\s+/g, " ").slice(0, 150) || null;
+  const fuente = s(f, "fuente") === "sms" ? "sms" : "web";
   const sb = db();
 
   // Límites contra abuso
@@ -54,15 +54,19 @@ export async function crearRecordatorio(_: Estado, f: FormData): Promise<Estado>
     .eq("contacto", contacto).is("anulado_en", null).gt("cita_en", new Date().toISOString());
   if ((porContacto ?? 0) >= 5) return { error: "Este contacto ya tiene 5 recordatorios activos. Anule alguno desde el enlace que recibió." };
 
-  const { data: r, error } = await sb.from("recordatorios").insert({
+  const base = {
     nombre: s(f, "nombre").slice(0, 80) || null,
     canal, contacto,
     cita_en: citaEn.toISOString(),
     especialidad: s(f, "especialidad").slice(0, 80) || null,
     lugar: s(f, "lugar").slice(0, 120) || null,
-    origen: origenPorId(origen) ? origen : null,
     rango, ip_hash: ipHash, consentimiento_en: new Date().toISOString(),
-  }).select("id").single();
+  };
+  let { data: r, error } = await sb.from("recordatorios").insert({ ...base, direccion_origen: direccion, fuente }).select("id").single();
+  // Si aún no se ejecuta la migración de noviembre (columnas nuevas), se guarda sin ellas.
+  if (error && /direccion_origen|fuente|column/i.test(error.message)) {
+    ({ data: r, error } = await sb.from("recordatorios").insert(base).select("id").single());
+  }
   if (error || !r) return { error: "No se pudo registrar. Intente nuevamente." };
 
   const plan = planificar(citaEn, rango, avisos);
