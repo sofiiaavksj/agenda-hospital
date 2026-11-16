@@ -5,6 +5,7 @@ import { origenPorId } from "@/data/transporte";
 import { ESPECIALIDADES } from "@/data/especialidades";
 import { chileDateKey, formatDateLong, fromChileLocal } from "@/lib/time";
 import { leerPrellenado, hayPrellenado } from "@/lib/prellenado";
+import { canalesActivos } from "@/lib/canales";
 
 export const metadata = { title: "Recordatorio de mi hora", referrer: "no-referrer" };
 export const dynamic = "force-dynamic";
@@ -42,6 +43,7 @@ export default async function Page(props: { searchParams: Promise<Record<string,
         inicial={fechaVencida ? { ...inicial, fecha: undefined, hora: undefined } : inicial}
         direccionInicial={direccionInicial}
         fuente={desdeSms ? "sms" : "web"}
+        canales={canalesActivos()}
       />
     </Shell>
   );

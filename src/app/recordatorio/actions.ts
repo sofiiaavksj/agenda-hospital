@@ -6,6 +6,7 @@ import { planificar, normalizarCelular, normalizarCorreo, RANGOS, AVISOS, type A
 import { fromChileLocal, DAY } from "@/lib/time";
 import { crearToken, hashIp } from "@/lib/token";
 import { despachar } from "@/lib/despacho";
+import { canalesActivos, type Canal } from "@/lib/canales";
 
 export interface Estado { error?: string; campo?: string }
 
@@ -24,7 +25,7 @@ export async function crearRecordatorio(_: Estado, f: FormData): Promise<Estado>
 
   // Canal y contacto
   const canal = s(f, "canal");
-  if (!["whatsapp", "sms", "email"].includes(canal)) return { error: "Elija cómo quiere recibir el aviso.", campo: "canal" };
+  if (!canalesActivos().includes(canal as Canal)) return { error: "Elija cómo quiere recibir el aviso.", campo: "canal" };
   const contacto = canal === "email" ? normalizarCorreo(s(f, "contacto")) : normalizarCelular(s(f, "contacto"));
   if (!contacto) {
     return {

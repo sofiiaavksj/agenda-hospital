@@ -1,18 +1,19 @@
 import QRCode from "qrcode";
 import { appUrl, sitio } from "@/config/sitio";
 import { CopyButton, PrintButtonClient } from "./CopyButton";
+import { textoCanales } from "@/lib/canales";
 
 export const metadata = { title: "Material para la página del hospital", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 const PREGUNTA = "¿Tiene hora en el hospital?";
-const BAJADA = "Le recordamos su cita por WhatsApp, SMS o correo y le mostramos cómo llegar en micro, colectivo o bus.";
+const bajada = () => `Le recordamos su cita por ${textoCanales()} y le mostramos cómo llegar en micro, colectivo o bus.`;
 
 /** Banner listo para pegar en el sitio del hospital (estilos en línea, sin dependencias). */
 function bannerHtml(url: string) {
   return `<a href="${url}" target="_blank" rel="noopener" style="display:block;max-width:640px;padding:20px 24px;border-radius:14px;background:#0E4F4A;color:#fff;text-decoration:none;font-family:Arial,Helvetica,sans-serif">
   <span style="display:block;font-size:24px;font-weight:bold;line-height:1.25">${PREGUNTA}</span>
-  <span style="display:block;margin-top:6px;font-size:16px;line-height:1.4;color:#E3EEEC">${BAJADA}</span>
+  <span style="display:block;margin-top:6px;font-size:16px;line-height:1.4;color:#E3EEEC">${bajada()}</span>
   <span style="display:inline-block;margin-top:14px;padding:10px 18px;border-radius:8px;background:#E0A526;color:#1A2422;font-weight:bold;font-size:16px">Activar recordatorio y ver cómo llegar</span>
 </a>`;
 }
@@ -52,7 +53,7 @@ export default async function Page() {
         <p className="mx-auto mt-4 max-w-md text-2xl leading-snug text-ink-soft">Le recordamos su cita y le mostramos cómo llegar.</p>
         <div className="mx-auto mt-8 w-64" dangerouslySetInnerHTML={{ __html: qr }} />
         <p className="mt-4 text-xl font-bold">Escanee con la cámara de su celular</p>
-        <p className="mt-6 text-lg text-ink-soft">WhatsApp, SMS o correo. Sin RUT y sin crear cuenta.</p>
+        <p className="mt-6 text-lg text-ink-soft">Aviso por {textoCanales()}. Sin RUT y sin crear cuenta.</p>
       </section>
     </main>
   );

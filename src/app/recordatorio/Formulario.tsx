@@ -13,6 +13,8 @@ interface Props {
   /** Dirección sugerida (por ejemplo, desde la guía de un sector). */
   direccionInicial?: string;
   fuente: "web" | "sms";
+  /** Medios de aviso activos (los demás no se muestran). */
+  canales: string[];
 }
 
 const CANALES = [
@@ -23,9 +25,10 @@ const CANALES = [
 
 const tile = "flex cursor-pointer items-center gap-3 rounded-xl border-2 border-line bg-white px-4 py-3 has-[:checked]:border-pine has-[:checked]:bg-pine-soft";
 
-export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direccionInicial, fuente }: Props) {
+export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direccionInicial, fuente, canales }: Props) {
   const [estado, accion, pendiente] = useActionState<Estado, FormData>(crearRecordatorio, {});
-  const [canal, setCanal] = useState("whatsapp");
+  const opciones = CANALES.filter((x) => canales.includes(x.value));
+  const [canal, setCanal] = useState(opciones[0]?.value ?? "email");
   const alerta = useRef<HTMLParagraphElement>(null);
   // En el celular el error queda arriba: se lleva la vista hasta él.
   useEffect(() => {
@@ -72,14 +75,18 @@ export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direc
 
       <fieldset>
         <legend className="mb-3 text-2xl font-bold">Cómo le avisamos</legend>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {CANALES.map((x) => (
-            <label key={x.value} className={tile}>
-              <input type="radio" name="canal" value={x.value} checked={canal === x.value} onChange={() => setCanal(x.value)} className="h-5 w-5 accent-pine" />
-              <span className="font-bold">{x.label}</span>
-            </label>
-          ))}
-        </div>
+        {opciones.length > 1 ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            {opciones.map((x) => (
+              <label key={x.value} className={tile}>
+                <input type="radio" name="canal" value={x.value} checked={canal === x.value} onChange={() => setCanal(x.value)} className="h-5 w-5 accent-pine" />
+                <span className="font-bold">{x.label}</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <input type="hidden" name="canal" value={canal} />
+        )}
         <label className="mt-4 block"><span className="label">{c.ayuda}</span>
           <input name="contacto" required inputMode={canal === "email" ? "email" : "tel"} autoComplete={canal === "email" ? "email" : "tel"}
             placeholder={c.placeholder} className={`field text-xl ${err("contacto") ? "border-risk-alto" : ""}`} /></label>

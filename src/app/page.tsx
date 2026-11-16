@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Shell } from "@/components/Shell";
 import { sitio } from "@/config/sitio";
 import { db } from "@/lib/supabase";
+import { textoCanales } from "@/lib/canales";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function Inicio(props: { searchParams: Promise<{ origen?: s
       <div className="mt-10 grid gap-4">
         <Link href="/recordatorio" className="group rounded-2xl border-2 border-pine bg-pine p-6 text-white hover:bg-pine-dark">
           <span className="block text-2xl font-bold">Quiero un recordatorio</span>
-          <span className="mt-1 block text-white/85">Por WhatsApp, mensaje de texto o correo, en el horario que le acomode.</span>
+          <span className="mt-1 block text-white/85">Por {textoCanales()}, en el horario que le acomode.</span>
         </Link>
         <Link href="/como-llegar" className="rounded-2xl border-2 border-line bg-white p-6 hover:border-pine">
           <span className="block text-2xl font-bold">¿Cómo llego al hospital?</span>

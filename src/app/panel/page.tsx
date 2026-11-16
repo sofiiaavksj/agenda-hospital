@@ -124,7 +124,7 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
       </div>
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-bold">Últimos mensajes</h2>
-        {process.env.NOTIFY_PROVIDER !== "twilio" && <p className="mb-3 rounded-lg bg-marigold-soft px-4 py-2">Modo simulado: WhatsApp y SMS se registran aquí pero no se envían.</p>}
+        {process.env.NOTIFY_PROVIDER !== "twilio" && <p className="mb-3 rounded-lg bg-marigold-soft px-4 py-2">WhatsApp y SMS no están activos: la página ofrece sólo el correo. Se activan al configurar un proveedor (ver presupuesto de la versión avanzada).</p>}
         <ul className="space-y-2">
           {(ultimos ?? []).map((x: any, i: number) => (
             <li key={i} className="rounded-xl border border-line bg-white p-3">
