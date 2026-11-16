@@ -87,7 +87,7 @@ export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores
             ref={input} id="desde" type="text" value={consulta} autoComplete="off" maxLength={100}
             role="combobox" aria-expanded={abierto && opciones.length > 0} aria-controls={listaId} aria-autocomplete="list"
             aria-activedescendant={activo >= 0 ? `${listaId}-${activo}` : undefined}
-            placeholder="Ej.: Corazón de Jesús 4124, Coquimbo"
+            placeholder="Ej.: Avenida Costanera 500, Coquimbo"
             className="field text-xl"
             onChange={(e) => { setConsulta(e.target.value); setSeleccion(null); setAbierto(true); }}
             onFocus={() => setAbierto(true)}

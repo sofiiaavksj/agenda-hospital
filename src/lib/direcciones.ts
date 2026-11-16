@@ -4,7 +4,7 @@
  */
 export interface Sugerencia {
   id: string;
-  titulo: string;   // "Corazón de Jesús 4124" o "Mallplaza La Serena"
+  titulo: string;   // "Los Pescadores 1234" o "Mallplaza La Serena"
   detalle: string;  // "Sindempart, Coquimbo"
   texto: string;    // lo que se envía a Google Maps como origen
 }
@@ -14,7 +14,7 @@ interface PhotonFeature {
   geometry?: { coordinates?: [number, number] };
 }
 
-/** Número de casa escrito por la persona ("corazon de jesus 4124" → "4124"). */
+/** Número de casa escrito por la persona ("los pescadores 1234" → "1234"). */
 export function numeroEn(consulta: string) {
   return consulta.match(/\b(\d{1,5})\b/)?.[1];
 }
