@@ -8,7 +8,7 @@ export const LLEVAR_OPCIONES = [
   "Orden médica o interconsulta",
   "Radiografías u otras imágenes",
   "Medicamentos que usa o sus recetas",
-  "Carné de control",
+  "Lentes o audífonos",
 ] as const;
 
 export const CEDULA = "Cédula de identidad";

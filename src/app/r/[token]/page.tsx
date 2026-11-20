@@ -14,6 +14,7 @@ import { CamposMotivo } from "@/components/Motivos";
 import { MOTIVOS, MOTIVOS_ANTES, MOTIVOS_DESPUES, esMotivo } from "@/lib/motivos";
 import { anular, noPodreIr, responderAsistencia } from "./actions";
 import { BotonesLlamar } from "@/components/Telefonos";
+import { IrA } from "@/components/IrA";
 import { IconoBolso } from "@/components/Iconos";
 import { listaLlevar, textoLlevar } from "@/lib/llevar";
 
@@ -51,10 +52,15 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
 
   return (
     <Shell>
-      {searchParams.nuevo && (
-        <Notice ok={`Listo. Le enviamos una confirmación por ${CANAL[r.canal]} a ${ocultarContacto(r.contacto)}. Guarde ese mensaje: trae el enlace a esta página.`} />
+      {(searchParams.nuevo || searchParams.ok || searchParams.aviso) && (
+        <IrA key={`${searchParams.nuevo}${searchParams.ok}${searchParams.aviso}`} id={searchParams.aviso ? "aviso" : "resultado"} arriba={!searchParams.aviso} />
       )}
-      <Notice ok={searchParams.ok} />
+      <div id="resultado" tabIndex={-1} className="scroll-mt-4 outline-none">
+      {searchParams.nuevo && (
+          <Notice ok={`Listo. Le enviamos una confirmación por ${CANAL[r.canal]} a ${ocultarContacto(r.contacto)}. Guarde ese mensaje: trae el enlace a esta página.`} />
+        )}
+        <Notice ok={searchParams.ok} />
+      </div>
 
       <div className="flex overflow-hidden rounded-2xl border border-line bg-white">
         <div className="min-w-0 flex-1 p-5 sm:p-7">
@@ -125,7 +131,7 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
 
       {/* "No podré ir": la plataforma no puede liberar la hora; orienta a llamar al hospital. */}
       {(searchParams.aviso || r.no_asistira_en) && !pasada && (
-        <section className="mt-8 rounded-2xl border-2 border-sol bg-sol-soft p-5">
+        <section id="aviso" tabIndex={-1} className="mt-8 scroll-mt-4 rounded-2xl border-2 border-sol bg-sol-soft p-5 outline-none">
           <h2 className="text-2xl font-bold">Avise al hospital para liberar su hora</h2>
           <p className="mt-2">Ya no le enviaremos recordatorios. Para que otro paciente pueda usar su hora, llame al hospital al número que corresponda a su hora:</p>
           <div className="mt-4"><BotonesLlamar compacto /></div>

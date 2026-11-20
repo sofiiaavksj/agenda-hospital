@@ -215,3 +215,37 @@ describe("teléfonos del hospital", () => {
     expect(telefonosActivos().map((t) => t.numero)).toEqual(["512336855", "512336336"]);
   });
 });
+
+import { calcular, datosEjemplo, resultado } from "@/lib/indicadores";
+
+describe("indicadores del panel", () => {
+  const ahora = new Date("2026-11-20T15:00:00Z");
+  const base = { creado_en: "2026-11-01T12:00:00Z", canal: "email", rango: "tarde", especialidad: "Cardiología", anulado_en: null, no_asistira_en: null, asistio: null as boolean | null };
+  it("clasifica cada cita en un resultado", () => {
+    expect(resultado({ ...base, cita_en: "2026-11-10T12:00:00Z", asistio: true }, ahora)).toBe("asistio");
+    expect(resultado({ ...base, cita_en: "2026-11-10T12:00:00Z", asistio: false }, ahora)).toBe("no_asistio");
+    expect(resultado({ ...base, cita_en: "2026-11-10T12:00:00Z" }, ahora)).toBe("sin_respuesta");
+    expect(resultado({ ...base, cita_en: "2026-11-25T12:00:00Z", no_asistira_en: "2026-11-19T12:00:00Z" }, ahora)).toBe("aviso");
+    expect(resultado({ ...base, cita_en: "2026-11-25T12:00:00Z" }, ahora)).toBeNull();
+  });
+  it("calcula tasas y motivos", () => {
+    const k = calcular([
+      { ...base, cita_en: "2026-11-10T12:00:00Z", asistio: true },
+      { ...base, cita_en: "2026-11-11T12:00:00Z", asistio: true },
+      { ...base, cita_en: "2026-11-12T12:00:00Z", asistio: false, motivo: "olvido" },
+      { ...base, cita_en: "2026-11-13T12:00:00Z", no_asistira_en: "2026-11-12T12:00:00Z", motivo: "transporte" },
+      { ...base, cita_en: "2026-11-14T12:00:00Z" },
+    ], ahora, 30);
+    expect(k.citas).toBe(5);
+    expect(k.tasaAsistencia).toBeCloseTo(2 / 3);
+    expect(k.faltaron).toBe(2);
+    expect(k.motivos.map((m) => m.motivo).sort()).toEqual(["olvido", "transporte"]);
+    expect(k.porEspecialidad[0]).toMatchObject({ nombre: "Cardiología", citas: 5, faltaron: 2 });
+    expect(k.semanas.reduce((s, w) => s + w.n.asistio, 0)).toBe(2);
+  });
+  it("los datos de ejemplo siguen la encuesta: el olvido es la primera causa", () => {
+    const k = calcular(datosEjemplo(ahora), ahora, 90);
+    expect(k.citas).toBeGreaterThan(100);
+    expect(k.motivos[0].motivo).toBe("olvido");
+  });
+});
