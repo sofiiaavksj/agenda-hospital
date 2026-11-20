@@ -12,7 +12,11 @@ export const dynamic = "force-dynamic";
 
 export default async function Page(props: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await props.searchParams;
-  const inicial = leerPrellenado(sp);
+  const leido = leerPrellenado(sp);
+  // "CARDIOLOGIA" del SMS se reconoce como "Cardiología" de la lista (sin importar tildes ni mayúsculas).
+  const sinTildes = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const canonica = leido.especialidad && ESPECIALIDADES.find((e) => sinTildes(e) === sinTildes(leido.especialidad!));
+  const inicial = canonica ? { ...leido, especialidad: canonica } : leido;
   const desdeSms = hayPrellenado(inicial) || sp.fuente === "sms";
   // Desde la guía de un sector se sugiere ese sector como punto de partida.
   const sector = typeof sp.origen === "string" ? origenPorId(sp.origen) : undefined;

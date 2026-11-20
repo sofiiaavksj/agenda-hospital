@@ -15,6 +15,8 @@ import { MOTIVOS, MOTIVOS_ANTES, MOTIVOS_DESPUES, esMotivo } from "@/lib/motivos
 import { anular, noPodreIr, responderAsistencia } from "./actions";
 import { BotonesLlamar } from "@/components/Telefonos";
 import { IrA } from "@/components/IrA";
+import { CompartirCita } from "@/components/CompartirCita";
+import { appUrl } from "@/config/sitio";
 import { IconoBolso } from "@/components/Iconos";
 import { listaLlevar, textoLlevar } from "@/lib/llevar";
 
@@ -146,6 +148,14 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
             Cómo llegar y a qué hora salir{r.direccion_origen ? ` desde ${r.direccion_origen}` : origen ? ` desde ${origen.nombre}` : ""}
           </Link>
         </div>
+      )}
+
+      {!pasada && !r.anulado_en && !r.no_asistira_en && (
+        <CompartirCita datos={{
+          nombre: r.nombre, citaEn: r.cita_en, especialidad: r.especialidad, lugar: r.lugar, llevar: r.llevar,
+          hospital: sitio.hospital, totem: sitio.totem,
+          enlaceLlegar: `${appUrl()}/como-llegar?hora=${encodeURIComponent(formatTime(r.cita_en))}`,
+        }} />
       )}
 
       {/* Avisos programados */}

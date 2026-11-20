@@ -86,7 +86,7 @@ export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direc
           ))}
         </div>
         <label className="mt-3 block"><span className="label">Otra cosa</span>
-          <input name="llevar_otro" maxLength={120} placeholder="Ej.: ir en ayunas, ir acompañado" className="field" /></label>
+          <input name="llevar_otro" maxLength={120} defaultValue={inicial.llevar} placeholder="Ej.: ir en ayunas, ir acompañado" className="field" /></label>
       </fieldset>
 
       <fieldset>

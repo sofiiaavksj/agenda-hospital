@@ -16,6 +16,7 @@ https://agenda-hospital.vercel.app/c?n=<nombre>&f=<fecha>&h=<hora>&e=<especialid
 | Hora | `h` | `08:00` | |
 | Especialidad | `e` | `LABORATORIO` | Opcional. |
 | Lugar | `l` | `ENTRADA POR PUERTA PRINCIPAL` | Opcional. Se quita "Presentarse en:". |
+| Qué llevar | `ll` | `EXAMENES DE SANGRE` | Opcional. Aparece en "¿Qué debe llevar ese día?". Alarga el SMS. |
 
 **Nunca** se incluyen RUT ni teléfono: el link puede reenviarse o quedar guardado en el celular.
 

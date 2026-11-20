@@ -4,8 +4,8 @@
  * El hospital arma el link desde su planilla Excel, por ejemplo:
  *   https://agenda-hospital.vercel.app/c?n=Rosa&f=2026-11-23&h=08:00&e=Laboratorio&l=Entrada%20principal
  *
- * Se aceptan nombres cortos (n, f, h, e, l) y largos (nombre, fecha, hora,
- * especialidad, lugar). Todo es tolerante: si un dato viene mal escrito se
+ * Se aceptan nombres cortos (n, f, h, e, l, ll) y largos (nombre, fecha, hora,
+ * especialidad, lugar, llevar). Todo es tolerante: si un dato viene mal escrito se
  * ignora y el paciente lo completa a mano. Nunca se aceptan RUT ni teléfono.
  */
 export interface Prellenado {
@@ -14,6 +14,7 @@ export interface Prellenado {
   hora?: string;         // HH:MM
   especialidad?: string;
   lugar?: string;
+  llevar?: string;       // qué debe llevar (texto libre)
 }
 
 type Params = Record<string, string | string[] | undefined>;
@@ -75,6 +76,7 @@ export function leerPrellenado(p: Params): Prellenado {
   // Sólo el primer nombre, sin números ni símbolos.
   const nombre = nombreCompleto?.split(" ")[0]?.replace(/[^\p{L}'-]/gu, "").slice(0, 40);
   const especialidad = uno(p, "e", "especialidad")?.slice(0, 80);
+  const llevarCrudo = uno(p, "ll", "llevar")?.slice(0, 120);
   const lugarCrudo = uno(p, "l", "lugar")?.replace(/^presentarse en\s*:\s*/i, "").slice(0, 120);
   return {
     nombre: nombre ? nombre.charAt(0).toUpperCase() + (nombre === nombre.toUpperCase() ? nombre.slice(1).toLowerCase() : nombre.slice(1)) : undefined,
@@ -82,6 +84,7 @@ export function leerPrellenado(p: Params): Prellenado {
     hora: leerHora(uno(p, "h", "hora")),
     especialidad: especialidad ? suavizarMayusculas(especialidad) : undefined,
     lugar: lugarCrudo ? suavizarMayusculas(lugarCrudo) : undefined,
+    llevar: llevarCrudo ? (llevarCrudo === llevarCrudo.toUpperCase() ? llevarCrudo.charAt(0) + llevarCrudo.slice(1).toLowerCase() : llevarCrudo) : undefined,
   };
 }
 

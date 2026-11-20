@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const destino = new URL("/recordatorio", req.url);
   req.nextUrl.searchParams.forEach((v, k) => {
-    if (["n", "f", "h", "e", "l", "nombre", "fecha", "hora", "especialidad", "lugar"].includes(k)) destino.searchParams.set(k, v);
+    if (["n", "f", "h", "e", "l", "ll", "nombre", "fecha", "hora", "especialidad", "lugar", "llevar"].includes(k)) destino.searchParams.set(k, v);
   });
   destino.searchParams.set("fuente", "sms");
   try { await db().from("visitas").insert({ fuente: "sms" }); } catch { /* no bloquea */ }

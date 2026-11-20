@@ -249,3 +249,25 @@ describe("indicadores del panel", () => {
     expect(k.motivos[0].motivo).toBe("olvido");
   });
 });
+
+import { mensajeCompartir, enlaceWhatsapp } from "@/lib/compartir";
+
+describe("avisar a un familiar o cuidador", () => {
+  const d = { nombre: "Rosa Pérez", citaEn: "2026-11-24T12:15:00Z", especialidad: "Cardiología", lugar: "Policlínico, 2° piso", llevar: "Resultados de exámenes", hospital: "Hospital San Pablo de Coquimbo", totem: "Acérquese al tótem.", enlaceLlegar: "https://x/como-llegar?hora=09:15" };
+  it("arma el mensaje en primera persona o para otra persona", () => {
+    const yo = mensajeCompartir({ ...d, quien: "yo" });
+    expect(yo).toContain("tengo hora de Cardiología en el Hospital San Pablo de Coquimbo");
+    expect(yo).toContain("a las 09:15");
+    expect(yo).toContain("Debo llevar: cédula de identidad y resultados de exámenes.");
+    expect(yo).toContain("📍 Lugar: Policlínico, 2° piso.");
+    const otra = mensajeCompartir({ ...d, quien: "otra" });
+    expect(otra).toContain("Rosa tiene hora de Cardiología");
+    expect(otra).not.toContain("/r/");
+  });
+  it("abre WhatsApp con el texto codificado", () => {
+    expect(enlaceWhatsapp("Hola & chao")).toBe("https://wa.me/?text=Hola%20%26%20chao");
+  });
+  it("el link del SMS puede traer qué llevar", () => {
+    expect(leerPrellenado({ ll: "EXAMENES DE SANGRE" }).llevar).toBe("Examenes de sangre");
+  });
+});
