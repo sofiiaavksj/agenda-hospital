@@ -25,7 +25,7 @@ function Barras({ items }: { items: { label: string; n: number }[] }) {
       {[...items].sort((a, b) => b.n - a.n).map((i) => (
         <li key={i.label} className="grid grid-cols-[minmax(7rem,12rem)_1fr_4rem] items-center gap-3 text-base">
           <span>{i.label}</span>
-          <span className="h-3 rounded-full bg-mist"><span className="block h-3 rounded-full bg-pine" style={{ width: `${(i.n / max) * 100}%` }} /></span>
+          <span className="h-3 rounded-full bg-mist"><span className="block h-3 rounded-full bg-azul" style={{ width: `${(i.n / max) * 100}%` }} /></span>
           <span className="text-right font-bold">{i.n}</span>
         </li>
       ))}
@@ -61,7 +61,7 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
   const kpis = [
     { t: "Recordatorios creados", v: String(r.length), d: `${r.filter((x) => x.anulado_en).length} anulados` },
     { t: "Asistió (según el paciente)", v: pct(asistieron, respondieron.length), d: `${asistieron} de ${respondieron.length} respuestas` },
-    { t: "Avisaron que no irían", v: String(r.filter((x) => x.no_asistira_en).length), d: "Se les indicó llamar a SOME" },
+    { t: "Avisaron que no irían", v: String(r.filter((x) => x.no_asistira_en).length), d: "Se les indicó llamar al hospital" },
     { t: "Consultas de transporte", v: String((consultas ?? []).length), d: `Visitas desde el hospital: ${(visitas ?? []).filter((v) => v.fuente === "sitio-hospital").length}; desde QR: ${(visitas ?? []).filter((v) => v.fuente === "qr").length}; desde SMS: ${(visitas ?? []).filter((v) => v.fuente === "sms").length}` },
   ];
   // Motivos: "antes" = avisó que no iría; "después" = respondió que no fue.
@@ -79,7 +79,7 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
         <div className="flex flex-wrap items-center gap-2">
           <form action={salir}><button className="link mr-3 text-base">Cerrar sesión</button></form>
           {[7, 30, 90].map((d) => (
-            <a key={d} href={`/panel?dias=${d}`} className={`rounded-full px-4 py-1.5 font-bold ${d === dias ? "bg-pine text-white" : "bg-white ring-1 ring-line"}`}>{d} días</a>
+            <a key={d} href={`/panel?dias=${d}`} className={`rounded-full px-4 py-1.5 font-bold ${d === dias ? "bg-azul text-white" : "bg-white ring-1 ring-line"}`}>{d} días</a>
           ))}
         </div>
       </div>
@@ -87,7 +87,7 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
         {kpis.map((k) => (
           <div key={k.t} className="bg-white p-5">
             <dt className="font-bold">{k.t}</dt>
-            <dd className="mt-1 text-3xl font-bold text-pine">{k.v}</dd>
+            <dd className="mt-1 text-3xl font-bold text-azul">{k.v}</dd>
             <dd className="text-sm text-ink-soft">{k.d}</dd>
           </div>
         ))}
@@ -124,7 +124,7 @@ export default async function Panel(props: { searchParams: Promise<{ dias?: stri
       </div>
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-bold">Últimos mensajes</h2>
-        {process.env.NOTIFY_PROVIDER !== "twilio" && <p className="mb-3 rounded-lg bg-marigold-soft px-4 py-2">WhatsApp y SMS no están activos: la página ofrece sólo el correo. Se activan al configurar un proveedor (ver presupuesto de la versión avanzada).</p>}
+        {process.env.NOTIFY_PROVIDER !== "twilio" && <p className="mb-3 rounded-lg bg-sol-soft px-4 py-2">WhatsApp y SMS no están activos: la página ofrece sólo el correo. Se activan al configurar un proveedor (ver presupuesto de la versión avanzada).</p>}
         <ul className="space-y-2">
           {(ultimos ?? []).map((x: any, i: number) => (
             <li key={i} className="rounded-xl border border-line bg-white p-3">

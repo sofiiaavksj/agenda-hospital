@@ -13,6 +13,9 @@ import { enlaceTransporte } from "@/lib/despacho";
 import { CamposMotivo } from "@/components/Motivos";
 import { MOTIVOS, MOTIVOS_ANTES, MOTIVOS_DESPUES, esMotivo } from "@/lib/motivos";
 import { anular, noPodreIr, responderAsistencia } from "./actions";
+import { BotonesLlamar } from "@/components/Telefonos";
+import { IconoBolso } from "@/components/Iconos";
+import { listaLlevar, textoLlevar } from "@/lib/llevar";
 
 export const metadata = { title: "Mi recordatorio", referrer: "no-referrer", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -43,7 +46,7 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
     titulo: `Hora médica${r.especialidad ? `: ${r.especialidad}` : ""}`,
     inicio: new Date(r.cita_en),
     lugar: `${sitio.hospital}, ${HOSPITAL.direccion}`,
-    detalle: [r.lugar && `Lugar: ${r.lugar}.`, sitio.totem, "Lleve su cédula de identidad y llegue 20 minutos antes."].filter(Boolean).join("\n"),
+    detalle: [r.lugar && `Lugar: ${r.lugar}.`, sitio.totem, `No olvide: ${textoLlevar(r.llevar)}.`, "Llegue 20 minutos antes."].filter(Boolean).join("\n"),
   });
 
   return (
@@ -55,13 +58,13 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
 
       <div className="flex overflow-hidden rounded-2xl border border-line bg-white">
         <div className="min-w-0 flex-1 p-5 sm:p-7">
-          <p className="text-lg font-bold text-pine">{r.especialidad ?? "Hora médica"}</p>
+          <p className="text-lg font-bold text-azul">{r.especialidad ?? "Hora médica"}</p>
           <p className="mt-3 text-xl first-letter:uppercase">{formatDateLong(r.cita_en)}</p>
           <p className="text-6xl font-bold leading-none tracking-tight sm:text-7xl">{formatTime(r.cita_en)}</p>
           <p className="mt-4 text-ink-soft">{sitio.hospital}{r.lugar && <><br />{r.lugar}</>}</p>
         </div>
         <div className={`flex w-28 shrink-0 flex-col items-center justify-center gap-1 border-l-2 border-dashed border-line p-3 text-center sm:w-36 ${
-          r.anulado_en || r.no_asistira_en ? "bg-zinc-100 text-zinc-600" : "bg-pine-soft text-pine"}`}>
+          r.anulado_en || r.no_asistira_en ? "bg-zinc-100 text-zinc-600" : "bg-azul-soft text-azul"}`}>
           <span className="text-lg font-bold leading-tight">{r.anulado_en ? "Avisos anulados" : r.no_asistira_en ? "No asistirá" : pasada ? "Cita pasada" : "Avisos activos"}</span>
           {!pasada && <span className="text-base first-letter:uppercase">{relativeDays(r.cita_en)}</span>}
         </div>
@@ -69,7 +72,7 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
 
       {/* Indicación al llegar (tótem) */}
       {!pasada && !r.anulado_en && !r.no_asistira_en && sitio.totem && (
-        <section className="mt-6 flex items-start gap-4 rounded-2xl border-2 border-marigold bg-marigold-soft p-5">
+        <section className="mt-6 flex items-start gap-4 rounded-2xl border-2 border-sol bg-sol-soft p-5">
           <span aria-hidden className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-xl font-bold text-white">i</span>
           <div>
             <h2 className="text-xl font-bold">Al llegar al hospital</h2>
@@ -78,9 +81,27 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
         </section>
       )}
 
+      {/* Qué llevar */}
+      {!pasada && !r.anulado_en && !r.no_asistira_en && (
+        <section className="mt-6 rounded-2xl border-2 border-azul bg-white p-5">
+          <h2 className="flex items-center gap-3 text-xl font-bold">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-azul text-white"><IconoBolso className="h-6 w-6" /></span>
+            No olvide llevar
+          </h2>
+          <ul className="mt-3 space-y-2">
+            {listaLlevar(r.llevar).map((x) => (
+              <li key={x} className="flex items-start gap-3 text-lg">
+                <span aria-hidden className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 border-azul text-sm font-bold text-azul">✓</span>
+                {x}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Después de la cita */}
       {pasada && !r.no_asistira_en && (
-        <section className="mt-8 rounded-2xl border-2 border-pine bg-white p-5">
+        <section className="mt-8 rounded-2xl border-2 border-azul bg-white p-5">
           {r.asistio === null ? (
             <>
               <h2 className="text-2xl font-bold">¿Pudo asistir a su hora?</h2>
@@ -102,12 +123,12 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
         </section>
       )}
 
-      {/* "No podré ir": la plataforma no puede liberar la hora; orienta a avisar a SOME. */}
+      {/* "No podré ir": la plataforma no puede liberar la hora; orienta a llamar al hospital. */}
       {(searchParams.aviso || r.no_asistira_en) && !pasada && (
-        <section className="mt-8 rounded-2xl border-2 border-marigold bg-marigold-soft p-5">
+        <section className="mt-8 rounded-2xl border-2 border-sol bg-sol-soft p-5">
           <h2 className="text-2xl font-bold">Avise al hospital para liberar su hora</h2>
-          <p className="mt-2">Ya no le enviaremos recordatorios. Para que otro paciente pueda usar su hora, comuníquese con SOME{sitio.horarioSome ? ` (${sitio.horarioSome})` : ""}.</p>
-          {sitio.telefonoSome && <a href={`tel:${sitio.telefonoSome.replace(/\s/g, "")}`} className="btn-primary mt-4 w-full py-4 text-lg sm:w-auto">Llamar a SOME: {sitio.telefonoSome}</a>}
+          <p className="mt-2">Ya no le enviaremos recordatorios. Para que otro paciente pueda usar su hora, llame al hospital al número que corresponda a su hora:</p>
+          <div className="mt-4"><BotonesLlamar compacto /></div>
         </section>
       )}
 
@@ -116,7 +137,7 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
           <a href={calendarioGoogle} target="_blank" rel="noopener noreferrer" className="btn-primary py-4">Agregar a Google Calendar</a>
           <a href={`/r/${params.token}/calendario`} className="btn-secondary py-4">Calendario del celular (iPhone u otro)</a>
           <Link href={rutaLlegar} className="btn-secondary py-4 sm:col-span-2">
-            Cómo llegar{r.direccion_origen ? ` desde ${r.direccion_origen}` : origen ? ` desde ${origen.nombre}` : ""}
+            Cómo llegar y a qué hora salir{r.direccion_origen ? ` desde ${r.direccion_origen}` : origen ? ` desde ${origen.nombre}` : ""}
           </Link>
         </div>
       )}
@@ -159,7 +180,7 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
               <SubmitButton className="btn-danger">Anular avisos</SubmitButton>
             </form>
           </details>
-          <p className="pt-2 text-base text-ink-soft">¿Cambió la fecha de su hora? Anule estos avisos y <Link href="/recordatorio" className="link">cree un recordatorio nuevo</Link>.</p>
+          <p className="pt-2 text-base text-ink-soft">¿Necesita cancelar o cambiar su hora? <Link href="/informacion" className="link">Vea los teléfonos del hospital</Link>. Si la fecha cambió, anule estos avisos y <Link href="/recordatorio" className="link">cree un recordatorio nuevo</Link>.</p>
         </section>
       )}
     </Shell>

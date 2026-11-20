@@ -2,6 +2,7 @@ import { db } from "@/lib/supabase";
 import { leerToken } from "@/lib/token";
 import { sitio } from "@/config/sitio";
 import { HOSPITAL } from "@/data/transporte";
+import { textoLlevar } from "@/lib/llevar";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export async function GET(_: Request, ctx: { params: Promise<{ token: string }> 
   const params = await ctx.params;
   const id = leerToken(params.token);
   if (!id) return new Response("No encontrado", { status: 404 });
-  const { data: r } = await db().from("recordatorios").select("id, cita_en, especialidad, lugar").eq("id", id).maybeSingle();
+  const { data: r } = await db().from("recordatorios").select("*").eq("id", id).maybeSingle();
   if (!r) return new Response("No encontrado", { status: 404 });
   const start = new Date(r.cita_en);
   const end = new Date(start.getTime() + 60 * 60_000);
@@ -24,7 +25,7 @@ export async function GET(_: Request, ctx: { params: Promise<{ token: string }> 
     `UID:${r.id}@agenda`, `DTSTAMP:${ics(new Date())}`, `DTSTART:${ics(start)}`, `DTEND:${ics(end)}`,
     `SUMMARY:${esc(titulo)}`,
     `LOCATION:${esc(`${sitio.hospital}, ${HOSPITAL.direccion}${r.lugar ? `. ${r.lugar}` : ""}`)}`,
-    `DESCRIPTION:${esc([sitio.totem, "Lleve su cédula de identidad y llegue 20 minutos antes."].filter(Boolean).join("\n"))}`,
+    `DESCRIPTION:${esc([sitio.totem, `No olvide: ${textoLlevar(r.llevar)}.`, "Llegue 20 minutos antes."].filter(Boolean).join("\n"))}`,
     "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${esc(titulo)} mañana`, "END:VALARM",
     "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", `DESCRIPTION:${esc(titulo)} en 2 horas`, "END:VALARM",
     "END:VEVENT", "END:VCALENDAR",

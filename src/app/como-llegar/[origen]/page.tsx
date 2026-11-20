@@ -49,7 +49,7 @@ export default async function Page(props: { params: Promise<{ origen: string }>;
       </section>
 
       {!yaTieneRecordatorio && (
-        <section className="mt-10 rounded-2xl border-2 border-pine bg-white p-5">
+        <section className="mt-10 rounded-2xl border-2 border-azul bg-white p-5">
           <h2 className="text-xl font-bold">¿Quiere que le recordemos su hora?</h2>
           <p className="mt-1 text-ink-soft">Le avisamos por {textoCanales()}, con esta ruta incluida.</p>
           <Link href={`/recordatorio?origen=${o.id}`} className="btn-primary mt-4">Activar recordatorio</Link>

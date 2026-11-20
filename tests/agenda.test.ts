@@ -165,3 +165,53 @@ describe("buscador de direcciones", () => {
     expect(sugerenciasDesdePhoton({}, "x")).toEqual([]);
   });
 });
+
+import { horaSalida, minutosViaje, HOSPITAL_COORD, VIAJE_SIN_DATOS } from "@/lib/salida";
+import { leerLlevar, listaLlevar, textoLlevar } from "@/lib/llevar";
+import { formatoTelefono, enlaceLlamar, telefonosActivos } from "@/data/contactos";
+import { COORD_SECTORES } from "@/data/transporte";
+
+describe("hora recomendada de salida", () => {
+  it("resta el viaje y los 20 minutos de admisión", () => {
+    expect(horaSalida("08:30", 40)).toEqual({ hora: "07:30", diaAnterior: false });
+    expect(horaSalida("00:10", 30)).toEqual({ hora: "23:20", diaAnterior: true });
+    expect(horaSalida("25:00", 30)).toBeNull();
+    expect(horaSalida("", 30)).toBeNull();
+  });
+  it("estima más tiempo desde más lejos, en múltiplos de 5", () => {
+    const cerca = minutosViaje(COORD_SECTORES["coquimbo-centro"]);
+    const lejos = minutosViaje(COORD_SECTORES["la-serena-centro"]);
+    expect(cerca).toBeGreaterThanOrEqual(15);
+    expect(lejos).toBeGreaterThan(cerca);
+    expect(lejos).toBeLessThanOrEqual(90);
+    expect(lejos % 5).toBe(0);
+    expect(minutosViaje(HOSPITAL_COORD)).toBe(15);
+    expect(minutosViaje(null)).toBe(VIAJE_SIN_DATOS);
+  });
+});
+
+describe("qué llevar", () => {
+  it("acepta sólo opciones conocidas más un texto libre", () => {
+    expect(leerLlevar(["Resultados de exámenes", "<script>"], "  ir en\nayunas ")).toBe("Resultados de exámenes; Ir en ayunas");
+    expect(leerLlevar([], " ")).toBeNull();
+  });
+  it("siempre recuerda la cédula", () => {
+    expect(listaLlevar(null)).toEqual(["Cédula de identidad"]);
+    expect(textoLlevar("Resultados de exámenes; Orden médica o interconsulta"))
+      .toBe("cédula de identidad, resultados de exámenes y orden médica o interconsulta");
+  });
+  it("aparece en los avisos", () => {
+    const { texto } = redactar("un_dia", { hospital: "Hospital", citaEn: "2026-11-23T11:00:00Z", enlaceGestion: "g", enlaceTransporte: "t", llevar: "Resultados de exámenes" });
+    expect(texto).toContain("No olvide: cédula de identidad y resultados de exámenes.");
+  });
+});
+
+describe("teléfonos del hospital", () => {
+  it("formatea y arma el enlace para llamar", () => {
+    expect(formatoTelefono("512336855")).toBe("51 233 6855");
+    expect(enlaceLlamar("512336855")).toBe("tel:+56512336855");
+    expect(formatoTelefono("6003607777")).toBe("600 360 7777");
+    expect(enlaceLlamar("131")).toBe("tel:131");
+    expect(telefonosActivos().map((t) => t.numero)).toEqual(["512336855", "512336336"]);
+  });
+});

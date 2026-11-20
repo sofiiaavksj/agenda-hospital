@@ -25,15 +25,15 @@ export default async function Page(props: { searchParams: Promise<Record<string,
         {inicial.nombre ? `${inicial.nombre}, activemos su recordatorio` : "Recordatorio de su hora"}
       </h1>
       {desdeSms && inicial.fecha && !fechaVencida ? (
-        <div className="mb-8 mt-4 rounded-xl border-2 border-pine bg-pine-soft p-4">
-          <p className="font-bold text-pine">Ya completamos los datos de su hora{inicial.hora ? ` del ${formatDateLong(fromChileLocal(`${inicial.fecha}T${inicial.hora}`))} a las ${inicial.hora}` : ""}.</p>
+        <div className="mb-8 mt-4 rounded-xl border-2 border-azul bg-azul-soft p-4">
+          <p className="font-bold text-azul">Ya completamos los datos de su hora{inicial.hora ? ` del ${formatDateLong(fromChileLocal(`${inicial.fecha}T${inicial.hora}`))} a las ${inicial.hora}` : ""}.</p>
           <p className="mt-1">Revíselos, elija cómo quiere que le avisemos y presione el botón del final.</p>
         </div>
       ) : (
         <p className="mb-8 mt-2 text-ink-soft">Complete los datos de la hora que le dio el hospital. Toma un minuto.</p>
       )}
       {fechaVencida && (
-        <p className="mb-6 rounded-lg border border-marigold bg-marigold-soft px-4 py-3">La fecha que venía en el mensaje ya pasó. Si tiene una hora nueva, ingrese la fecha y hora correctas.</p>
+        <p className="mb-6 rounded-lg border border-sol bg-sol-soft px-4 py-3">La fecha que venía en el mensaje ya pasó. Si tiene una hora nueva, ingrese la fecha y hora correctas.</p>
       )}
       <Formulario
         hoy={chileDateKey(new Date())}

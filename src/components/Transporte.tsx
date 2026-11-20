@@ -6,14 +6,14 @@ export function Linea({ texto }: { texto: string }) {
   return (
     <span className="inline-flex items-stretch overflow-hidden rounded-md border-2 border-ink text-base font-bold">
       <span className="bg-ink px-2 text-white">{num}</span>
-      {resto.length > 0 && <span className="bg-marigold-soft px-2">{resto.join(" ")}</span>}
+      {resto.length > 0 && <span className="bg-sol-soft px-2">{resto.join(" ")}</span>}
     </span>
   );
 }
 
 export function PorVerificar({ ok }: { ok: boolean }) {
   return ok ? null : (
-    <span className="rounded-full bg-marigold-soft px-2.5 py-0.5 text-sm font-bold text-[#7A5410]">Por verificar</span>
+    <span className="rounded-full bg-sol-soft px-2.5 py-0.5 text-sm font-bold text-sol-ink">Por verificar</span>
   );
 }
 
@@ -36,10 +36,10 @@ export function Ruta({ op, origen }: { op: Opcion; origen: string }) {
           <PorVerificar ok={op.verificado} />
         </div>
       </div>
-      <ol className="relative ml-2 border-l-4 border-pine/25">
+      <ol className="relative ml-2 border-l-4 border-azul/25">
         {pasos.map((p, i) => (
           <li key={i} className="relative pb-5 pl-6 last:pb-0">
-            <span className={`absolute -left-[11px] top-1 h-[18px] w-[18px] rounded-full border-4 ${i === pasos.length - 1 ? "border-pine bg-pine" : "border-pine bg-white"}`} aria-hidden />
+            <span className={`absolute -left-[11px] top-1 h-[18px] w-[18px] rounded-full border-4 ${i === pasos.length - 1 ? "border-azul bg-azul" : "border-azul bg-white"}`} aria-hidden />
             <p className="font-bold">{p.titulo}</p>
             {p.lineas && p.lineas.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{p.lineas.map((l) => <Linea key={l} texto={l} />)}</div>}
             {p.cuerpo && <p className="text-ink-soft">{p.cuerpo}</p>}
@@ -61,7 +61,8 @@ export function BotonesApps({ origen }: { origen?: string }) {
       {origen && (
         <a href={mapsUrl(origen, "driving")} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Ruta en auto o taxi</a>
       )}
-      <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className={`btn-secondary py-4 text-lg ${origen ? "" : "sm:col-span-2"}`}>Ver en Moovit</a>
+      <a href={HOSPITAL.ubicateUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Colectivos en vivo (Ubícate)</a>
+      <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className={`btn-secondary py-4 text-lg ${origen ? "sm:col-span-2" : ""}`}>Ver en Moovit</a>
     </div>
   );
 }
@@ -70,7 +71,7 @@ export function BotonesApps({ origen }: { origen?: string }) {
 export function AlLlegar({ texto }: { texto: string }) {
   if (!texto) return null;
   return (
-    <section className="flex items-start gap-4 rounded-2xl border-2 border-marigold bg-marigold-soft p-5">
+    <section className="flex items-start gap-4 rounded-2xl border-2 border-sol bg-sol-soft p-5">
       <span aria-hidden className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink text-xl font-bold text-white">i</span>
       <div>
         <h2 className="text-xl font-bold">Al llegar al hospital</h2>

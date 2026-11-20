@@ -13,7 +13,8 @@ Tiempo estimado: 40 minutos. Todo se hace desde el navegador con tres cuentas gr
 1. En <https://supabase.com> → **New project**, región **South America (São Paulo)**.
 2. **SQL Editor → New query**: pegue y ejecute (**Run**) el contenido de `supabase/migrations/20261109000000_agenda.sql`.
 3. Ejecute también `supabase/migrations/20261116000000_cambios_hospital.sql` (dirección, motivos de inasistencia y link del SMS). Se puede ejecutar más de una vez sin problema.
-4. **Project Settings → API**: copie la **Project URL** y la clave **service_role**. Esta clave es secreta.
+4. Ejecute también `supabase/migrations/20261120000000_llevar.sql` (qué debe llevar el paciente). Se puede ejecutar más de una vez sin problema.
+5. **Project Settings → API**: copie la **Project URL** y la clave **service_role**. Esta clave es secreta.
 
 Esta versión no usa el sistema de cuentas de Supabase: no hay que configurar correos de ingreso.
 
@@ -28,8 +29,6 @@ Esta versión no usa el sistema de cuentas de Supabase: no hay que configurar co
    | `SUPABASE_SERVICE_ROLE_KEY` | clave service_role |
    | `APP_URL` | dirección final, ej. `https://agenda-hospital.vercel.app` |
    | `HOSPITAL_NAME` | `Hospital San Pablo de Coquimbo` |
-   | `SOME_PHONE` | teléfono de SOME (verifíquelo con el hospital) |
-   | `SOME_HOURS` | horario de atención telefónica de SOME |
    | `TOKEN_SECRET` | texto aleatorio de 40 caracteres (<https://www.random.org/strings/>) |
    | `CRON_SECRET` | otro texto aleatorio de 40 caracteres |
    | `PANEL_USER` / `PANEL_PASSWORD` | usuario y contraseña del panel |
@@ -79,7 +78,7 @@ Gmail limita la cantidad de correos diarios por cuenta; para un piloto alcanza d
 Abra `https://SU-DIRECCION/difusion`:
 
 - **Banner**: presione **Copiar código** y entréguelo al área de comunicaciones o TI del hospital para pegarlo en su sitio.
-- **Afiche**: presione **Imprimir afiche** para SOME, salas de espera y box.
+- **Afiche**: presione **Imprimir afiche** para admisión, salas de espera y box.
 
 El panel distingue las visitas que llegan desde el banner y desde el QR.
 
@@ -100,7 +99,7 @@ Ver `docs/LINK_SMS.md` y la plantilla `docs/Plantilla_link_SMS.xlsx`: la columna
 
 ## 9. Antes de usarla con pacientes
 
-- Acordar con el hospital el uso de su nombre, el banner y el teléfono de SOME.
+- Acordar con el hospital el uso de su nombre, el banner y sus teléfonos. Los teléfonos se cambian en `src/data/contactos.ts`.
 - Revisar con el hospital el texto de `/privacidad`.
 - Verificar la guía de transporte completa.
 - Probar los recordatorios con el equipo (sus propios celulares) antes de abrirla al público.

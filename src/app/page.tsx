@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
+import { IconoBus, IconoCampana, IconoFono, Flecha } from "@/components/Iconos";
 import { sitio } from "@/config/sitio";
 import { db } from "@/lib/supabase";
 import { textoCanales } from "@/lib/canales";
@@ -12,28 +13,53 @@ export default async function Inicio(props: { searchParams: Promise<{ origen?: s
   if (searchParams.origen === "sitio-hospital" || searchParams.origen === "qr") {
     try { await db().from("visitas").insert({ fuente: searchParams.origen }); } catch { /* no bloquea */ }
   }
-  return (
-    <Shell>
-      <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-        ¿Tiene hora en el {sitio.hospital.replace(/^Hospital /, "hospital ")}?
-      </h1>
-      <p className="mt-4 text-xl leading-relaxed text-ink-soft">
-        Le avisamos antes de su cita y le mostramos cómo llegar. Sin RUT y sin crear una cuenta.
-      </p>
 
-      <div className="mt-10 grid gap-4">
-        <Link href="/recordatorio" className="group rounded-2xl border-2 border-pine bg-pine p-6 text-white hover:bg-pine-dark">
-          <span className="block text-2xl font-bold">Quiero un recordatorio</span>
-          <span className="mt-1 block text-white/85">Por {textoCanales()}, en el horario que le acomode.</span>
-        </Link>
-        <Link href="/como-llegar" className="rounded-2xl border-2 border-line bg-white p-6 hover:border-pine">
-          <span className="block text-2xl font-bold">¿Cómo llego al hospital?</span>
-          <span className="mt-1 block text-ink-soft">Escriba su dirección y vea qué micro, colectivo o bus tomar.</span>
-        </Link>
+  const hero = (
+    <section className="bg-azul text-white">
+      <div className="mx-auto max-w-2xl px-4 pb-24 pt-10 sm:px-5 sm:pt-14">
+        <h1 className="text-[2.6rem] font-bold leading-[1.05] tracking-tight sm:text-6xl">
+          ¿Tiene hora en el {sitio.hospital.replace(/^Hospital /, "hospital ").replace(/ de Coquimbo$/, "")}?
+        </h1>
+        <p className="mt-4 max-w-xl text-xl leading-snug text-white/90">
+          Le avisamos antes de su cita, le decimos a qué hora salir y cómo llegar. Sin RUT y sin crear una cuenta.
+        </p>
       </div>
+    </section>
+  );
 
-      <p className="mt-10 text-base text-ink-soft">
-        También puede pedir el recordatorio para un familiar: sólo necesita el celular o correo donde quiere recibirlo.
+  const opciones = [
+    {
+      href: "/recordatorio", titulo: "Recordar mi hora", detalle: `Le avisamos por ${textoCanales()} y le recordamos qué llevar.`,
+      icono: <IconoCampana />, estilo: "bg-sol text-ink border-sol hover:bg-[#FFD15F]", iconoEstilo: "bg-azul-dark text-sol",
+    },
+    {
+      href: "/como-llegar", titulo: "Cómo llegar y a qué hora salir", detalle: "Micro, colectivo o bus desde su casa.",
+      icono: <IconoBus />, estilo: "bg-white border-azul hover:bg-azul-soft", iconoEstilo: "bg-azul text-white",
+    },
+    {
+      href: "/informacion", titulo: "Cancelar, cambiar o consultar", detalle: "Teléfonos del hospital y qué hacer en cada caso.",
+      icono: <IconoFono />, estilo: "bg-white border-azul hover:bg-azul-soft", iconoEstilo: "bg-azul text-white",
+    },
+  ];
+
+  return (
+    <Shell hero={hero}>
+      <nav aria-label="Qué quiere hacer" className="-mt-24 grid gap-4">
+        {opciones.map((o) => (
+          <Link key={o.href} href={o.href}
+            className={`flex items-center gap-4 rounded-2xl border-2 p-4 shadow-[0_6px_0_0_#0B2A66] transition-transform active:translate-y-1 active:shadow-[0_2px_0_0_#0B2A66] sm:p-5 ${o.estilo}`}>
+            <span className={`inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-xl ${o.iconoEstilo}`}>{o.icono}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-2xl font-bold leading-tight">{o.titulo}</span>
+              <span className="mt-1 block text-base leading-snug opacity-80">{o.detalle}</span>
+            </span>
+            <Flecha className="h-7 w-7 shrink-0" />
+          </Link>
+        ))}
+      </nav>
+
+      <p className="mt-10 rounded-2xl bg-azul-soft px-5 py-4 text-lg">
+        ¿La hora es de un familiar? También puede pedir el recordatorio por él o ella: sólo necesita el celular o correo donde quiere recibirlo.
       </p>
     </Shell>
   );

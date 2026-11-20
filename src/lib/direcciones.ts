@@ -7,6 +7,8 @@ export interface Sugerencia {
   titulo: string;   // "Los Pescadores 1234" o "Mallplaza La Serena"
   detalle: string;  // "Sindempart, Coquimbo"
   texto: string;    // lo que se envía a Google Maps como origen
+  lat?: number;     // para estimar el tiempo de viaje
+  lon?: number;
 }
 
 interface PhotonFeature {
@@ -42,7 +44,7 @@ export function sugerenciasDesdePhoton(json: { features?: PhotonFeature[] }, con
     if (vistas.has(clave)) continue;
     vistas.add(clave);
     const c = f.geometry?.coordinates;
-    salida.push({ id: c ? `${c[1].toFixed(5)},${c[0].toFixed(5)}` : clave, titulo, detalle, texto });
+    salida.push({ id: c ? `${c[1].toFixed(5)},${c[0].toFixed(5)}` : clave, titulo, detalle, texto, ...(c ? { lat: c[1], lon: c[0] } : {}) });
   }
   return salida.slice(0, 6);
 }

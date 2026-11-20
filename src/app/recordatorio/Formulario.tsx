@@ -2,6 +2,7 @@
 import { useActionState, useEffect, useRef, useState, startTransition } from "react";
 import { crearRecordatorio, type Estado } from "./actions";
 import type { Prellenado } from "@/lib/prellenado";
+import { LLEVAR_OPCIONES } from "@/lib/llevar";
 
 interface Props {
   hoy: string;
@@ -23,7 +24,7 @@ const CANALES = [
   { value: "email", label: "Correo", ayuda: "Correo electrónico", placeholder: "nombre@correo.cl" },
 ];
 
-const tile = "flex cursor-pointer items-center gap-3 rounded-xl border-2 border-line bg-white px-4 py-3 has-[:checked]:border-pine has-[:checked]:bg-pine-soft";
+const tile = "flex cursor-pointer items-center gap-3 rounded-xl border-2 border-line bg-white px-4 py-3 has-[:checked]:border-azul has-[:checked]:bg-azul-soft";
 
 export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direccionInicial, fuente, canales }: Props) {
   const [estado, accion, pendiente] = useActionState<Estado, FormData>(crearRecordatorio, {});
@@ -74,12 +75,27 @@ export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direc
       </fieldset>
 
       <fieldset>
+        <legend className="mb-1 text-2xl font-bold">¿Qué debe llevar ese día? <span className="text-lg font-normal text-ink-soft">(opcional)</span></legend>
+        <p className="mb-3 text-ink-soft">Se lo recordamos en cada aviso. La cédula de identidad se la recordamos siempre.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {LLEVAR_OPCIONES.map((o) => (
+            <label key={o} className={tile}>
+              <input type="checkbox" name="llevar" value={o} className="h-5 w-5 shrink-0 accent-azul" />
+              {o}
+            </label>
+          ))}
+        </div>
+        <label className="mt-3 block"><span className="label">Otra cosa</span>
+          <input name="llevar_otro" maxLength={120} placeholder="Ej.: lentes, ir en ayunas, ir acompañado" className="field" /></label>
+      </fieldset>
+
+      <fieldset>
         <legend className="mb-3 text-2xl font-bold">Cómo le avisamos</legend>
         {opciones.length > 1 ? (
           <div className="grid gap-3 sm:grid-cols-3">
             {opciones.map((x) => (
               <label key={x.value} className={tile}>
-                <input type="radio" name="canal" value={x.value} checked={canal === x.value} onChange={() => setCanal(x.value)} className="h-5 w-5 accent-pine" />
+                <input type="radio" name="canal" value={x.value} checked={canal === x.value} onChange={() => setCanal(x.value)} className="h-5 w-5 accent-azul" />
                 <span className="font-bold">{x.label}</span>
               </label>
             ))}
@@ -100,7 +116,7 @@ export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direc
         <div className="grid gap-3">
           {avisos.map((a) => (
             <label key={a.value} className={tile}>
-              <input type="checkbox" name="avisos" value={a.value} defaultChecked={a.value !== "dos_dias"} className="h-5 w-5 accent-pine" />
+              <input type="checkbox" name="avisos" value={a.value} defaultChecked={a.value !== "dos_dias"} className="h-5 w-5 accent-azul" />
               {a.label}
             </label>
           ))}
@@ -109,7 +125,7 @@ export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direc
         <div className="grid gap-3">
           {rangos.map((r, i) => (
             <label key={r.value} className={tile}>
-              <input type="radio" name="rango" value={r.value} defaultChecked={i === 1} className="h-5 w-5 accent-pine" />
+              <input type="radio" name="rango" value={r.value} defaultChecked={i === 1} className="h-5 w-5 accent-azul" />
               {r.label}
             </label>
           ))}
@@ -125,7 +141,7 @@ export function Formulario({ hoy, especialidades, rangos, avisos, inicial, direc
       </fieldset>
 
       <label className={`flex items-start gap-3 rounded-xl border-2 bg-white p-4 ${err("consentimiento") ? "border-risk-alto" : "border-line"}`}>
-        <input type="checkbox" name="consentimiento" className="mt-1 h-5 w-5 shrink-0 accent-pine" />
+        <input type="checkbox" name="consentimiento" className="mt-1 h-5 w-5 shrink-0 accent-azul" />
         <span>Autorizo que me envíen estos avisos. Mis datos se usan sólo para esto y se borran 30 días después de la cita.</span>
       </label>
 

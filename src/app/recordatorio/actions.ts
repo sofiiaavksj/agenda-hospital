@@ -8,6 +8,7 @@ import { fromChileLocal, DAY } from "@/lib/time";
 import { crearToken, hashIp } from "@/lib/token";
 import { despachar } from "@/lib/despacho";
 import { canalesActivos, type Canal } from "@/lib/canales";
+import { leerLlevar } from "@/lib/llevar";
 
 export interface Estado { error?: string; campo?: string }
 
@@ -64,10 +65,19 @@ export async function crearRecordatorio(_: Estado, f: FormData): Promise<Estado>
     lugar: s(f, "lugar").slice(0, 120) || null,
     rango, ip_hash: ipHash, consentimiento_en: new Date().toISOString(),
   };
-  let { data: r, error } = await sb.from("recordatorios").insert({ ...base, direccion_origen: direccion, fuente }).select("id").single();
-  // Si aún no se ejecuta la migración de noviembre (columnas nuevas), se guarda sin ellas.
-  if (error && /direccion_origen|fuente|column/i.test(error.message)) {
-    ({ data: r, error } = await sb.from("recordatorios").insert(base).select("id").single());
+  const llevar = leerLlevar(f.getAll("llevar").map(String), s(f, "llevar_otro"));
+  // Se intenta con todas las columnas; si alguna migración aún no se ejecuta en
+  // Supabase, se guarda sin las columnas que faltan (la página sigue funcionando).
+  const intentos = [
+    { ...base, direccion_origen: direccion, fuente, llevar },
+    { ...base, direccion_origen: direccion, fuente },
+    base,
+  ];
+  let r: { id: string } | null = null;
+  let error: { message: string } | null = null;
+  for (const fila of intentos) {
+    ({ data: r, error } = await sb.from("recordatorios").insert(fila).select("id").single());
+    if (!error || !/llevar|direccion_origen|fuente|column/i.test(error.message)) break;
   }
   if (error || !r) return { error: "No se pudo registrar. Intente nuevamente." };
 

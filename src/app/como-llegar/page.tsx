@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { Shell } from "@/components/Shell";
 import { AlLlegar, Paraderos } from "@/components/Transporte";
 import { BuscadorRuta, type Sector } from "@/components/BuscadorRuta";
-import { ORIGENES, HOSPITAL, CONSEJOS, origenPorId } from "@/data/transporte";
+import { ORIGENES, HOSPITAL, CONSEJOS, COORD_SECTORES, origenPorId } from "@/data/transporte";
 import { sitio } from "@/config/sitio";
 import { db } from "@/lib/supabase";
 import { COOKIE_RECORDATORIO } from "@/lib/recordatorio-cookie";
@@ -18,8 +18,9 @@ const HABITUALES = ["coquimbo-centro", "parte-alta", "san-juan", "sindempart", "
  * aparecen los botones con esa ruta. Las rutas escritas por sector quedan como
  * complemento para quien no usa aplicaciones.
  */
-export default async function Page(props: { searchParams: Promise<{ desde?: string; rec?: string }> }) {
+export default async function Page(props: { searchParams: Promise<{ desde?: string; rec?: string; hora?: string }> }) {
   const sp = await props.searchParams;
+  const hora = /^\d{2}:\d{2}$/.test(sp.hora ?? "") ? sp.hora : undefined;
   const desde = sp.desde?.trim().replace(/\s+/g, " ").slice(0, 150) || "";
   if (desde) {
     // Sólo se cuenta la consulta; la dirección no se guarda.
@@ -30,17 +31,17 @@ export default async function Page(props: { searchParams: Promise<{ desde?: stri
   const sectores: Sector[] = HABITUALES.map((id) => origenPorId(id)!).filter(Boolean).map((o) => {
     const corto = o.nombre.replace("Centro de ", "").split(" /")[0];
     const comuna = o.grupo === "Otras comunas" ? "" : `, ${o.grupo}`;
-    return { id: o.id, etiqueta: o.id === "la-serena-centro" ? "La Serena centro" : o.id === "coquimbo-centro" ? "Coquimbo centro" : corto, texto: `${corto}${comuna}, Chile` };
+    return { id: o.id, etiqueta: o.id === "la-serena-centro" ? "La Serena centro" : o.id === "coquimbo-centro" ? "Coquimbo centro" : corto, texto: `${corto}${comuna}, Chile`, ...COORD_SECTORES[o.id] };
   });
   const grupos = ["Coquimbo", "La Serena", "Otras comunas"] as const;
 
   return (
     <Shell back={{ href: "/", label: "Volver" }}>
-      <h1 className="text-3xl font-bold tracking-tight">¿Cómo llego al hospital?</h1>
-      <p className="mt-2 text-ink-soft">{HOSPITAL.nombre}, {HOSPITAL.direccion}.</p>
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">¿Cómo llego al hospital?</h1>
+      <p className="mt-2 text-lg text-ink-soft">{HOSPITAL.nombre}, {HOSPITAL.direccion}. Le mostramos la ruta y a qué hora salir.</p>
 
-      <div className="mt-8 rounded-2xl border-2 border-pine bg-white p-5">
-        <BuscadorRuta inicial={desde || undefined} sectores={sectores} />
+      <div className="mt-6 rounded-2xl border-2 border-azul bg-white p-5 shadow-[0_6px_0_0_#0B2A66]">
+        <BuscadorRuta inicial={desde || undefined} sectores={sectores} hora={hora} />
       </div>
 
       <div className="mt-10"><AlLlegar texto={sitio.totem} /></div>
@@ -63,7 +64,7 @@ export default async function Page(props: { searchParams: Promise<{ desde?: stri
               <h3 className="mb-2 font-bold text-ink-soft">{g}</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {ORIGENES.filter((o) => o.grupo === g).map((o) => (
-                  <Link key={o.id} href={`/como-llegar/${o.id}${yaTieneRecordatorio ? "?rec=1" : ""}`} className="rounded-xl border-2 border-line bg-white px-4 py-3 font-bold hover:border-pine">
+                  <Link key={o.id} href={`/como-llegar/${o.id}${yaTieneRecordatorio ? "?rec=1" : ""}`} className="rounded-xl border-2 border-line bg-white px-4 py-3 font-bold hover:border-azul">
                     {o.nombre}
                   </Link>
                 ))}
@@ -74,7 +75,7 @@ export default async function Page(props: { searchParams: Promise<{ desde?: stri
       </details>
 
       {!yaTieneRecordatorio && (
-        <section className="mt-10 rounded-2xl border-2 border-pine bg-white p-5">
+        <section className="mt-10 rounded-2xl border-2 border-azul bg-white p-5">
           <h2 className="text-xl font-bold">¿Quiere que le recordemos su hora?</h2>
           <p className="mt-1 text-ink-soft">Le avisamos antes de la cita, con la ruta incluida.</p>
           <Link href="/recordatorio" className="btn-primary mt-4">Activar recordatorio</Link>

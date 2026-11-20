@@ -24,7 +24,7 @@ La guía de publicación está en **[GUIA_DESPLIEGUE.md](GUIA_DESPLIEGUE.md)** y
 ## Además
 
 - **Mensaje de confirmación inmediato** con un enlace personal (`/r/...`) para ver los avisos, agregar la hora al calendario del celular (.ics), ver cómo llegar o anular.
-- **"No podré ir"**: deja de enviar avisos y muestra el teléfono de SOME para liberar la hora.
+- **"No podré ir"**: deja de enviar avisos y muestra los teléfonos del hospital para liberar la hora.
 - **"¿Pudo asistir?"**: pregunta de un toque después de la cita. Es el indicador de efectividad del proyecto.
 - **Panel de indicadores** (`/panel`, con usuario y contraseña):
   - Recordatorios creados, medio y horario elegidos.

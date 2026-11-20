@@ -17,7 +17,8 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid #E0A526;
+  outline: 3px solid #FFC233;
+  box-shadow: 0 0 0 5px #0B2A66;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -27,15 +28,15 @@ body {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-bold transition-colors
            disabled:cursor-not-allowed disabled:opacity-60;
   }
-  .btn-primary { @apply btn bg-pine text-white hover:bg-pine-dark; }
-  .btn-secondary { @apply btn border border-line bg-white text-ink hover:border-pine hover:text-pine; }
+  .btn-primary { @apply btn bg-azul text-white hover:bg-azul-dark; }
+  .btn-secondary { @apply btn border border-line bg-white text-ink hover:border-azul hover:text-azul; }
   .btn-danger { @apply btn border border-risk-alto/40 bg-white text-risk-alto hover:bg-risk-alto hover:text-white; }
   .btn-sm { @apply px-3 py-1.5 text-sm; }
   .field { @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-ink placeholder:text-ink-soft/60
-                  focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20; }
+                  focus:border-azul focus:outline-none focus:ring-2 focus:ring-azul/20; }
   .label { @apply mb-1.5 block font-bold; }
   .panel { @apply rounded-xl border border-line bg-white; }
-  .link { @apply font-bold text-pine underline decoration-pine/30 underline-offset-4 hover:decoration-pine; }
+  .link { @apply font-bold text-azul underline decoration-azul/30 underline-offset-4 hover:decoration-azul; }
 }
 
 /* Comprobante: imprimir sólo el documento */

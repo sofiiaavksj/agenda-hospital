@@ -3,8 +3,6 @@ const clean = (v?: string) => v?.split("#")[0].trim() || "";
 
 export const sitio = {
   hospital: clean(process.env.HOSPITAL_NAME) || "Hospital San Pablo de Coquimbo",
-  telefonoSome: clean(process.env.SOME_PHONE),        // para avisar que no podrá asistir
-  horarioSome: clean(process.env.SOME_HOURS),         // ej. "lunes a viernes, 8:00 a 17:00"
   /**
    * Indicación al llegar al hospital. Se muestra en la confirmación, en los
    * avisos del día anterior y del mismo día, y en el calendario.

@@ -57,6 +57,23 @@ export const HOSPITAL = {
   destinoMapas: "Hospital San Pablo, Coquimbo, Chile",
   moovitUrl:
     "https://moovitapp.com/index/es-419/transporte_p%C3%BAblico-Hospital_San_Pablo_De_Coquimbo-La_Serena_y_Coquimbo-site_177944338-3281",
+  /** Ubícate: colectivos de Coquimbo y La Serena en vivo (ubicateapp.cl). */
+  ubicateUrl: "https://ubicateapp.cl/",
+};
+
+/**
+ * Punto aproximado de cada sector habitual, sólo para estimar el tiempo de
+ * viaje (hora recomendada de salida). Un error de unas cuadras cambia la
+ * estimación en 1 o 2 minutos.
+ */
+export const COORD_SECTORES: Record<string, { lat: number; lon: number }> = {
+  "coquimbo-centro": { lat: -29.9533, lon: -71.3395 },
+  "parte-alta": { lat: -29.965, lon: -71.327 },
+  "san-juan": { lat: -29.98, lon: -71.3 },
+  "sindempart": { lat: -29.97, lon: -71.319 },
+  "tierras-blancas": { lat: -29.987, lon: -71.29 },
+  "el-llano": { lat: -29.956, lon: -71.325 },
+  "la-serena-centro": { lat: -29.9045, lon: -71.2489 },
 };
 
 /** Paraderos cercanos al hospital (Moovit, por verificar en terreno). */

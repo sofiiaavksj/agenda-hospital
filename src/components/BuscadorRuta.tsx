@@ -2,15 +2,17 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { HOSPITAL, mapsUrl, completarDireccion as completar } from "@/data/transporte";
 import type { Sugerencia } from "@/lib/direcciones";
+import { horaSalida, minutosViaje, MINUTOS_ANTES } from "@/lib/salida";
+import { IconoReloj } from "@/components/Iconos";
 
-export interface Sector { id: string; etiqueta: string; texto: string }
-interface Seleccion { titulo: string; texto: string; sectorId?: string }
+export interface Sector { id: string; etiqueta: string; texto: string; lat?: number; lon?: number }
+interface Seleccion { titulo: string; texto: string; sectorId?: string; lat?: number; lon?: number }
 
 /**
  * Buscador de "¿desde dónde viaja?": sugiere direcciones mientras se escribe
  * y, al elegir una, muestra de inmediato los botones con esa ruta.
  */
-export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores: Sector[] }) {
+export function BuscadorRuta({ inicial, sectores, hora: horaInicial }: { inicial?: string; sectores: Sector[]; hora?: string }) {
   const [consulta, setConsulta] = useState(inicial ?? "");
   const [sugerencias, setSugerencias] = useState<Sugerencia[]>([]);
   const [abierto, setAbierto] = useState(false);
@@ -22,6 +24,12 @@ export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores
   const listaId = useId();
   const input = useRef<HTMLInputElement>(null);
   const ultima = useRef("");
+  const [hora, setHora] = useState(horaInicial ?? "");
+  const [viaje, setViaje] = useState(() => minutosViaje(null));
+  const coords = seleccion?.lat != null && seleccion?.lon != null ? { lat: seleccion.lat, lon: seleccion.lon } : null;
+  // Cada vez que cambia el lugar de partida, se vuelve a estimar el viaje.
+  useEffect(() => { setViaje(minutosViaje(coords)); }, [coords?.lat, coords?.lon, seleccion?.titulo]); // eslint-disable-line react-hooks/exhaustive-deps
+  const salida = hora ? horaSalida(hora, viaje) : null;
 
   // Búsqueda con espera breve mientras la persona escribe.
   useEffect(() => {
@@ -44,7 +52,7 @@ export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores
   }, [consulta, seleccion]);
 
   const opciones: Seleccion[] = [
-    ...sugerencias.map((s) => ({ titulo: s.detalle ? `${s.titulo}, ${s.detalle}` : s.titulo, texto: s.texto })),
+    ...sugerencias.map((s) => ({ titulo: s.detalle ? `${s.titulo}, ${s.detalle}` : s.titulo, texto: s.texto, lat: s.lat, lon: s.lon })),
     ...(consulta.trim().length >= 3 ? [{ titulo: consulta.trim(), texto: completar(consulta.trim()) }] : []),
   ];
 
@@ -106,8 +114,8 @@ export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores
               return (
                 <li key={`${o.texto}-${i}`} id={`${listaId}-${i}`} role="option" aria-selected={i === activo}
                   onMouseDown={(e) => { e.preventDefault(); elegir(o); }}
-                  className={`flex cursor-pointer items-start gap-3 border-b border-line px-4 py-3 last:border-0 ${i === activo ? "bg-pine-soft" : "hover:bg-mist"}`}>
-                  <span aria-hidden className="mt-0.5 text-pine">{propia ? "✎" : "⌖"}</span>
+                  className={`flex cursor-pointer items-start gap-3 border-b border-line px-4 py-3 last:border-0 ${i === activo ? "bg-azul-soft" : "hover:bg-mist"}`}>
+                  <span aria-hidden className="mt-0.5 text-azul">{propia ? "✎" : "⌖"}</span>
                   <span>{propia ? <>Usar «<strong>{o.titulo}</strong>» tal como lo escribí</> : o.titulo}</span>
                 </li>
               );
@@ -121,8 +129,8 @@ export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores
         <p className="mb-2 text-base text-ink-soft">Sectores habituales:</p>
         <div className="flex flex-wrap gap-2">
           {sectores.map((s) => (
-            <button key={s.id} type="button" onClick={() => elegir({ titulo: s.etiqueta, texto: s.texto, sectorId: s.id })}
-              className={`rounded-full border px-3 py-1.5 text-base ${seleccion?.sectorId === s.id ? "border-pine bg-pine-soft font-bold text-pine" : "border-line bg-white hover:border-pine"}`}>
+            <button key={s.id} type="button" onClick={() => elegir({ titulo: s.etiqueta, texto: s.texto, sectorId: s.id, lat: s.lat, lon: s.lon })}
+              className={`rounded-full border px-3 py-1.5 text-base ${seleccion?.sectorId === s.id ? "border-azul bg-azul-soft font-bold text-azul" : "border-line bg-white hover:border-azul"}`}>
               {s.etiqueta}
             </button>
           ))}
@@ -130,24 +138,62 @@ export function BuscadorRuta({ inicial, sectores }: { inicial?: string; sectores
       </div>
 
       {seleccion ? (
-        <section className="mt-6 rounded-2xl border-2 border-pine bg-pine-soft p-5" aria-live="polite">
-          <p className="text-base text-pine">Ruta desde</p>
+        <section className="mt-6 rounded-2xl border-2 border-azul bg-azul-soft p-5" aria-live="polite">
+          <p className="text-base text-azul">Ruta desde</p>
           <p className="text-xl font-bold">{seleccion.titulo}</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <a href={mapsUrl(seleccion.texto)} target="_blank" rel="noopener noreferrer" className="btn-primary py-4 text-lg sm:col-span-2">
               Ver la ruta en transporte público (Google Maps)
             </a>
             <a href={mapsUrl(seleccion.texto, "driving")} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3">En auto o taxi</a>
-            <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3">Ver en Moovit</a>
+            <a href={HOSPITAL.ubicateUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3">Colectivos en vivo (Ubícate)</a>
+            <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3 sm:col-span-2">Ver en Moovit</a>
           </div>
           {seleccion.sectorId && (
             <a href={`/como-llegar/${seleccion.sectorId}`} className="link mt-4 inline-block">Ver líneas y paraderos escritos para {seleccion.titulo}</a>
           )}
         </section>
+      ) : null}
+
+      {seleccion ? (
+        <section className="mt-4 rounded-2xl border-2 border-sol bg-sol-soft p-5" aria-labelledby="titulo-salida">
+          <h3 id="titulo-salida" className="flex items-center gap-3 text-xl font-bold">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-azul-dark text-sol"><IconoReloj className="h-6 w-6" /></span>
+            ¿A qué hora salir?
+          </h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="block"><span className="label">Hora de su cita</span>
+              <input type="time" value={hora} step={60} onChange={(e) => setHora(e.target.value)} className="field text-xl" /></label>
+            <div>
+              <span className="label">Viaje en micro o colectivo</span>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setViaje((v) => Math.max(5, v - 5))} aria-label="Restar 5 minutos" className="btn-secondary h-12 w-12 p-0 text-2xl">−</button>
+                <output aria-live="polite" className="min-w-[5.5rem] text-center text-xl font-bold">{viaje} min</output>
+                <button type="button" onClick={() => setViaje((v) => Math.min(240, v + 5))} aria-label="Sumar 5 minutos" className="btn-secondary h-12 w-12 p-0 text-2xl">+</button>
+              </div>
+            </div>
+          </div>
+          {salida ? (
+            <div className="mt-5 rounded-xl bg-azul-dark p-4 text-white" aria-live="polite">
+              <p className="text-lg">Salga a las</p>
+              <p className="text-5xl font-bold leading-none tracking-tight text-sol">{salida.hora}</p>
+              <p className="mt-2 text-white/90">
+                {salida.diaAnterior ? "(el día anterior) " : ""}Así llega {MINUTOS_ANTES} minutos antes de su hora de las {hora}, para hacer la admisión.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-4 text-ink-soft">Escriba la hora de su cita y le diremos a qué hora salir.</p>
+          )}
+          <p className="mt-3 text-base text-ink-soft">
+            {coords ? "El viaje es una estimación según la distancia." : "No conocemos la distancia exacta: ajuste el viaje con − y +."}{" "}
+            En horario punta (7:00 a 9:00 y 18:00 a 20:00) sume 10 minutos. Para el tiempo exacto, abra la ruta en Google Maps.
+          </p>
+        </section>
       ) : (
-        <a href={mapsUrl()} target="_blank" rel="noopener noreferrer" className="btn-secondary mt-6 w-full py-4 text-lg">
-          Ruta desde donde estoy ahora (Google Maps)
-        </a>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <a href={mapsUrl()} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Ruta desde donde estoy ahora</a>
+          <a href={HOSPITAL.ubicateUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Colectivos en vivo (Ubícate)</a>
+        </div>
       )}
     </div>
   );
