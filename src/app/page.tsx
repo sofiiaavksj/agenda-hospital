@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { IconoBus, IconoCampana, IconoFono, Flecha } from "@/components/Iconos";
 import { sitio } from "@/config/sitio";
@@ -7,8 +8,16 @@ import { textoCanales } from "@/lib/canales";
 
 export const dynamic = "force-dynamic";
 
-export default async function Inicio(props: { searchParams: Promise<{ origen?: string }> }) {
+export default async function Inicio(props: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const searchParams = await props.searchParams;
+  // Si un link del SMS llega a la portada (por ejemplo, porque alguna aplicación
+  // recortó "/c"), se abre igual el recordatorio con los datos de la cita.
+  const claves = ["n", "f", "h", "e", "l", "ll", "nombre", "fecha", "hora", "especialidad", "lugar", "llevar"];
+  if (claves.some((k) => typeof searchParams[k] === "string" && searchParams[k])) {
+    const q = new URLSearchParams();
+    for (const k of claves) if (typeof searchParams[k] === "string") q.set(k, searchParams[k] as string);
+    redirect(`/c?${q.toString()}`);
+  }
   // Mide cuántas personas llegan desde el banner del hospital o desde el afiche QR.
   if (searchParams.origen === "sitio-hospital" || searchParams.origen === "qr") {
     try { await db().from("visitas").insert({ fuente: searchParams.origen }); } catch { /* no bloquea */ }

@@ -27,6 +27,14 @@ mismas columnas de la planilla del hospital (B = nombre, G = especialidad,
 I = fecha, K = hora, P = información adicional). Copie esa columna a la
 planilla real: Excel traduce la fórmula al idioma del equipo.
 
+La columna **R** ("Probar link") abre el link con un clic, para comprobarlo
+antes de enviar los SMS. En Excel, el texto de la columna Q no es un enlace:
+se copia al SMS, pero para probarlo use la columna R o pegue el texto en el
+navegador. Fórmula de la columna R: `=HIPERVINCULO(Q2;"Abrir")`.
+
+Si al abrir la planilla aparece "Vista protegida", presione **Habilitar edición**
+para que Excel calcule los links.
+
 Versión en Excel en español (separador `;`), para la fila 2:
 
 ```

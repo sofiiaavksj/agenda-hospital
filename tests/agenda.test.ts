@@ -258,8 +258,9 @@ describe("avisar a un familiar o cuidador", () => {
     const yo = mensajeCompartir({ ...d, quien: "yo" });
     expect(yo).toContain("tengo hora de Cardiología en el Hospital San Pablo de Coquimbo");
     expect(yo).toContain("a las 09:15");
-    expect(yo).toContain("Debo llevar: cédula de identidad y resultados de exámenes.");
-    expect(yo).toContain("📍 Lugar: Policlínico, 2° piso.");
+    expect(yo).toContain("*Debo llevar:* cédula de identidad y resultados de exámenes.");
+    expect(yo).not.toMatch(/\p{Extended_Pictographic}/u);
+    expect(yo).toContain("*Lugar:* Policlínico, 2° piso.");
     const otra = mensajeCompartir({ ...d, quien: "otra" });
     expect(otra).toContain("Rosa tiene hora de Cardiología");
     expect(otra).not.toContain("/r/");

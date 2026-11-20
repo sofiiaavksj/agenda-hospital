@@ -2,6 +2,8 @@
  * Mensaje para avisar a un familiar o cuidador de la cita. Lo envía la propia
  * persona desde su WhatsApp (o SMS): no tiene costo y no pasa por la plataforma.
  * No incluye el enlace personal de gestión, sólo datos de la cita.
+ * Sin emojis: algunos WhatsApp (sobre todo en el computador) los muestran como "�".
+ * Los *asteriscos* se ven en negrita en WhatsApp.
  */
 import { formatDateLong, formatTime } from "./time";
 import { textoLlevar } from "./llevar";
@@ -26,12 +28,12 @@ export function mensajeCompartir(d: DatosCompartir) {
     : `Hola, te aviso que ${primer || "tu familiar"} tiene ${que} en el ${d.hospital}.`;
   const lineas = [
     inicio,
-    `📅 ${formatDateLong(d.citaEn).replace(/^./, (c) => c.toUpperCase())}, a las ${formatTime(d.citaEn)}.`,
-    d.lugar ? `📍 Lugar: ${d.lugar}.` : "",
-    `🎒 ${d.quien === "yo" ? "Debo llevar" : "Debe llevar"}: ${textoLlevar(d.llevar)}.`,
-    "⏰ Hay que llegar 20 minutos antes.",
-    d.totem ? `ℹ️ ${d.totem}` : "",
-    `🚌 Cómo llegar y a qué hora salir: ${d.enlaceLlegar}`,
+    `*Fecha:* ${formatDateLong(d.citaEn).replace(/^./, (c) => c.toUpperCase())}, a las ${formatTime(d.citaEn)}.`,
+    d.lugar ? `*Lugar:* ${d.lugar}.` : "",
+    `*${d.quien === "yo" ? "Debo llevar" : "Debe llevar"}:* ${textoLlevar(d.llevar)}.`,
+    "*Importante:* llegar 20 minutos antes.",
+    d.totem ? d.totem : "",
+    `*Cómo llegar y a qué hora salir:* ${d.enlaceLlegar}`,
     "",
     d.quien === "yo" ? "Te lo envío para que me ayudes a recordarlo." : "Te lo envío para que le ayudes a recordarlo.",
   ];
