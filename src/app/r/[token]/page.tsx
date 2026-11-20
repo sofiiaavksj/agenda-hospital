@@ -15,6 +15,7 @@ import { MOTIVOS, MOTIVOS_ANTES, MOTIVOS_DESPUES, esMotivo } from "@/lib/motivos
 import { anular, noPodreIr, responderAsistencia } from "./actions";
 import { BotonesLlamar } from "@/components/Telefonos";
 import { IrA } from "@/components/IrA";
+import { AgregarCalendario } from "@/components/AgregarCalendario";
 import { CompartirCita } from "@/components/CompartirCita";
 import { appUrl } from "@/config/sitio";
 import { IconoBolso } from "@/components/Iconos";
@@ -142,9 +143,8 @@ export default async function Page(props: { params: Promise<{ token: string }>; 
 
       {!pasada && !r.anulado_en && !r.no_asistira_en && (
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <a href={calendarioGoogle} target="_blank" rel="noopener noreferrer" className="btn-primary py-4">Agregar a Google Calendar</a>
-          <a href={`/r/${params.token}/calendario`} className="btn-secondary py-4">Calendario del celular (iPhone u otro)</a>
-          <Link href={rutaLlegar} className="btn-secondary py-4 sm:col-span-2">
+          <AgregarCalendario google={calendarioGoogle} ics={`/r/${params.token}/calendario`} className="btn-primary py-4" />
+          <Link href={rutaLlegar} className="btn-secondary py-4">
             Cómo llegar y a qué hora salir{r.direccion_origen ? ` desde ${r.direccion_origen}` : origen ? ` desde ${origen.nombre}` : ""}
           </Link>
         </div>

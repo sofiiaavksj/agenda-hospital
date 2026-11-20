@@ -272,3 +272,15 @@ describe("avisar a un familiar o cuidador", () => {
     expect(leerPrellenado({ ll: "EXAMENES DE SANGRE" }).llevar).toBe("Examenes de sangre");
   });
 });
+
+import { uberUrl } from "@/data/transporte";
+
+describe("Uber", () => {
+  it("lleva al hospital desde el punto elegido o desde la ubicación actual", () => {
+    const con = new URL(uberUrl({ lat: -29.9, lon: -71.25, texto: "Mallplaza La Serena" }));
+    expect(con.origin + con.pathname).toBe("https://m.uber.com/ul/");
+    expect(con.searchParams.get("pickup[latitude]")).toBe("-29.9");
+    expect(con.searchParams.get("dropoff[nickname]")).toContain("Hospital San Pablo");
+    expect(new URL(uberUrl()).searchParams.get("pickup")).toBe("my_location");
+  });
+});

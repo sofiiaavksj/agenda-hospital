@@ -1,4 +1,4 @@
-import { MODO_LABEL, type Opcion, PARADEROS, HOSPITAL, mapsUrl } from "@/data/transporte";
+import { MODO_LABEL, type Opcion, PARADEROS, HOSPITAL, mapsUrl, uberUrl } from "@/data/transporte";
 
 /** Letrero de línea, como el que llevan las micros en el parabrisas. */
 export function Linea({ texto }: { texto: string }) {
@@ -58,11 +58,9 @@ export function BotonesApps({ origen }: { origen?: string }) {
       <a href={mapsUrl(origen)} target="_blank" rel="noopener noreferrer" className="btn-primary py-4 text-lg sm:col-span-2">
         {origen ? "Ver ruta en transporte público (Google Maps)" : "Ruta desde donde estoy (Google Maps)"}
       </a>
-      {origen && (
-        <a href={mapsUrl(origen, "driving")} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Ruta en auto o taxi</a>
-      )}
+      <a href={uberUrl()} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Pedir un Uber</a>
       <a href={HOSPITAL.ubicateUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg">Colectivos en vivo (Ubícate)</a>
-      <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className={`btn-secondary py-4 text-lg ${origen ? "sm:col-span-2" : ""}`}>Ver en Moovit</a>
+      <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-4 text-lg sm:col-span-2">Ver en Moovit</a>
     </div>
   );
 }

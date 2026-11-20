@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
-import { HOSPITAL, mapsUrl, completarDireccion as completar } from "@/data/transporte";
+import { HOSPITAL, mapsUrl, uberUrl, completarDireccion as completar } from "@/data/transporte";
 import type { Sugerencia } from "@/lib/direcciones";
 import { horaSalida, minutosViaje, MINUTOS_ANTES } from "@/lib/salida";
 import { IconoReloj } from "@/components/Iconos";
@@ -145,7 +145,7 @@ export function BuscadorRuta({ inicial, sectores, hora: horaInicial }: { inicial
             <a href={mapsUrl(seleccion.texto)} target="_blank" rel="noopener noreferrer" className="btn-primary py-4 text-lg sm:col-span-2">
               Ver la ruta en transporte público (Google Maps)
             </a>
-            <a href={mapsUrl(seleccion.texto, "driving")} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3">En auto o taxi</a>
+            <a href={uberUrl({ lat: seleccion.lat, lon: seleccion.lon, texto: seleccion.titulo })} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3">Pedir un Uber</a>
             <a href={HOSPITAL.ubicateUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3">Colectivos en vivo (Ubícate)</a>
             <a href={HOSPITAL.moovitUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary py-3 sm:col-span-2">Ver en Moovit</a>
           </div>

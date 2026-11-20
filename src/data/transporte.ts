@@ -1,3 +1,4 @@
+import { HOSPITAL_COORD } from "@/lib/salida";
 /**
  * GUÍA DE TRANSPORTE AL HOSPITAL SAN PABLO DE COQUIMBO
  * ===================================================
@@ -192,6 +193,26 @@ export function completarDireccion(direccion: string) {
   const d = direccion.trim().replace(/\s+/g, " ");
   const tieneComuna = COMUNAS_REGION.some((c) => d.toLowerCase().includes(c));
   return `${d}${tieneComuna ? "" : ", Región de Coquimbo"}, Chile`;
+}
+
+/**
+ * Uber con el hospital como destino. Si se conoce el punto de partida, se usa;
+ * si no, Uber toma la ubicación actual. Abre la app si está instalada, o la web.
+ */
+export function uberUrl(desde?: { lat?: number; lon?: number; texto?: string }) {
+  const p = new URLSearchParams({ action: "setPickup" });
+  if (desde?.lat != null && desde?.lon != null) {
+    p.set("pickup[latitude]", String(desde.lat));
+    p.set("pickup[longitude]", String(desde.lon));
+    if (desde.texto) p.set("pickup[formatted_address]", desde.texto);
+  } else {
+    p.set("pickup", "my_location");
+  }
+  p.set("dropoff[latitude]", String(HOSPITAL_COORD.lat));
+  p.set("dropoff[longitude]", String(HOSPITAL_COORD.lon));
+  p.set("dropoff[nickname]", HOSPITAL.nombre);
+  p.set("dropoff[formatted_address]", HOSPITAL.direccion);
+  return `https://m.uber.com/ul/?${p.toString()}`;
 }
 
 export function mapsUrl(origen?: string, modo: "transit" | "driving" | "walking" = "transit") {
